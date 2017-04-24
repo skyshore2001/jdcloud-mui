@@ -391,7 +391,7 @@ function logout(dontReload)
 	g_data.userInfo = null;
 	callSvr("logout", function () {
 		if (! dontReload)
-			reloadSite();
+			mCommon.reloadSite();
 	});
 }
 
@@ -431,7 +431,7 @@ function parseArgs()
 
 	if (g_args.cordova || mCommon.getStorage("cordova")) {
 		if (g_args.cordova === 0) {
-			delStorage("cordova");
+			mCommon.delStorage("cordova");
 		}
 		else {
 			g_cordova = parseInt(g_args.cordova || mCommon.getStorage("cordova"));
@@ -475,7 +475,7 @@ function loadLoginToken()
 
 function deleteLoginToken()
 {
-	delStorage(tokenName());
+	mCommon.delStorage(tokenName());
 }
 
 /**

@@ -1034,7 +1034,7 @@ function initPageList(jpage, opt)
 			}
 			var arr = data;
 			if ($.isArray(data.h) && $.isArray(data.d)) {
-				arr = rs2Array(data);
+				arr = mCommon.rs2Array(data);
 			}
 			else if ($.isArray(data.list)) {
 				arr = data.list;

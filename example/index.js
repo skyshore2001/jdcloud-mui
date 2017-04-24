@@ -8,7 +8,7 @@ $.extend(MUI.options, {
 如果服务端接口兼容业务查询协议(BQP)，可定义 MUI.options.serverUrl 指向服务端接口地址。
 否则应定义MUI.callSvrExt适配接口。
 */
-	serverUrl: "http://oliveche.com/jdcloud/api.php"
+	serverUrl: "http://localhost/jdcloud/api.php"
 	// serverUrlAc: "ac"
 });
 
