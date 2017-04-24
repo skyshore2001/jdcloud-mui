@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8" />
+	<title>筋斗云演示</title>
+	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+	<meta http-equiv="Content-Security-Policy" content="default-src * 'unsafe-inline' 'unsafe-eval' data: blob: gap:">
+	<meta name="format-detection"content="telephone=no"/>
+
+	<!-- webapp setup -->
+	<meta name="apple-mobile-web-app-capable" content="yes">
+	<meta name="apple-mobile-web-app-title" content="筋斗云">
+	<link rel="apple-touch-icon" href="logo.jpg">
+	<!--link rel="apple-touch-startup-image" sizes="320x460" href="icon-320x460.png" media="screen and (max-device-width: 320)"-->
+
+	<meta name="mobile-web-app-capable" content="yes">
+	<meta name="application-name" content="筋斗云">
+	<!--link rel="shortcut icon" type="image/x-icon" href="favicon.ico"-->
+	<link rel="icon" href="logo.jpg"><!-- chrome use it -->
+
+	<link rel="stylesheet" href="weui.min.css" />
+	<link rel="stylesheet" href="../lib/mui.css" />
+	<link rel="stylesheet" href="index.css" />
+	<link rel="stylesheet" href="icon.out.css" />
+
+	<script src="../lib/jquery-1.11.1.min.js"></script>
+	<script src="../lib/jquery.touchSwipe.min.js"></script>
+
+<!--script src="../lib/jdcloud-mui.js"></script-->
+<!-- WEBCC_BEGIN MERGE -->
+<script src="../src/doc.js"></script>
+<script src="../src/common.js"></script>
+<script src="../src/commonjq.js"></script>
+<script src="../src/app.js"></script>
+<script src="../src/callSvr.js"></script>
+<script src="../src/mui-showPage.js"></script>
+<script src="../src/mui.js"></script>
+<script src="../src/initPageList.js"></script>
+<script src="../src/initPageDetail.js"></script>
+<script src="../src/mui-name.js"></script>
+<!-- WEBCC_END -->
+
+	<script src="index.js"></script>
+
+</head>
+
+<body class="mui-container">
+
+<!-- footer -->
+<div id="footer">
+	<a href="#home" mui-opt="ani:'none'">
+		<!--span class="icon icon-home"></span-->
+		<span>首页</span>
+	</a>
+	<a href="#orders" mui-opt="ani:'none'">
+		<span>订单</span>
+	</a>
+	<a href="#me" mui-opt="ani:'none'">
+		<span>我</span>
+	</a>
+</div>
+
+</body>
+</html>
+<!-- vim: set foldmethod=marker : -->
