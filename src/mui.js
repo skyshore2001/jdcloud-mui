@@ -1,13 +1,13 @@
-jdModule("jdcloud.mui", ns_jdcloud_mui);
-function ns_jdcloud_mui()
+jdModule("jdcloud.mui", JdcloudMui);
+function JdcloudMui()
 {
 var self = this;
 var mCommon = jdModule("jdcloud.common");
 
 // 子模块
-ns_jdcloud_app.call(self);
-ns_jdcloud_callSvr.call(self);
-ns_jdcloud_mui_showPage.call(self);
+JdcloudApp.call(self);
+JdcloudCall.call(self);
+JdcloudMuiPage.call(self);
 
 // ====== global {{{
 /**
@@ -256,7 +256,7 @@ function setFormSubmit(jf, fn, opt)
 		if (! $.isEmptyObject(postParam)) {
 			var ac = queryParam.ac;
 			delete queryParam.ac;
-			callSvr(ac, queryParam, fn, postParam, {userPost: postParam});
+			self.callSvr(ac, queryParam, fn, postParam, {userPost: postParam});
 		}
 		else if (opt.onNoAction) {
 			opt.onNoAction(jf);
@@ -272,7 +272,7 @@ $(document).on("deviceready", function () {
 	// 在home页按返回键退出应用。
 	$(document).on("backbutton", function () {
 		if (self.activePage.attr("id") == homePageId) {
-			app_alert("退出应用?", 'q', function () {
+			self.app_alert("退出应用?", 'q', function () {
 				navigator.app.exitApp();
 			});
 			return;
@@ -389,7 +389,7 @@ function logout(dontReload)
 {
 	deleteLoginToken();
 	g_data.userInfo = null;
-	callSvr("logout", function () {
+	self.callSvr("logout", function () {
 		if (! dontReload)
 			mCommon.reloadSite();
 	});
@@ -524,7 +524,7 @@ function tryAutoLogin(onHandleLogin, reuseCmd, allowNoLogin)
 
 	// first try "User.get"
 	if (reuseCmd != null) {
-		callSvr(reuseCmd, handleAutoLogin, null, ajaxOpt);
+		self.callSvr(reuseCmd, handleAutoLogin, null, ajaxOpt);
 	}
 	if (ok)
 		return ok;
@@ -535,7 +535,7 @@ function tryAutoLogin(onHandleLogin, reuseCmd, allowNoLogin)
 	{
 		var param = {wantAll:1};
 		var postData = {token: token};
-		callSvr("login", param, handleAutoLogin, postData, ajaxOpt);
+		self.callSvr("login", param, handleAutoLogin, postData, ajaxOpt);
 	}
 	if (ok)
 		return ok;
@@ -590,7 +590,7 @@ self.initClient = initClient;
 var plugins_ = {};
 function initClient(param)
 {
-	callSvrSync('initClient', param, function (data) {
+	self.callSvrSync('initClient', param, function (data) {
 		g_data.initClient = data;
 		plugins_ = data.plugins || {};
 		$.each(plugins_, function (k, e) {
@@ -757,7 +757,7 @@ function formatField(obj)
 		if (obj[k] == null || typeof obj[k] !== 'string')
 			continue;
 		if (RE_DateField.test(k))
-			obj[k] = parseDate(obj[k]);
+			obj[k] = mCommon.parseDate(obj[k]);
 		else if (RE_CurrencyField.test(k))
 			obj[k] = parseFloat(obj[k]);
 	}
@@ -811,7 +811,7 @@ function syslog(module, pri, content)
 
 	try {
 		var postParam = {module: module, pri: pri, content: content};
-		callSvr("Syslog.add", $.noop, postParam, {noex:1, noLoadingImg:1});
+		self.callSvr("Syslog.add", $.noop, postParam, {noex:1, noLoadingImg:1});
 	} catch (e) {
 		console.log(e);
 	}

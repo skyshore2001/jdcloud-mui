@@ -1,7 +1,8 @@
-jdModule("jdcloud.mui", ns_jdcloud_mui_detail_page);
-function ns_jdcloud_mui_detail_page()
+jdModule("jdcloud.mui", JdcloudDetailPage);
+function JdcloudDetailPage()
 {
 var self = this;
+var mCommon = jdModule("jdcloud.common");
 
 /**
 @var FormMode
@@ -192,14 +193,14 @@ function initPageDetail(jpage, opt)
 	function onPageBeforeShow() 
 	{
 		if (pageItf.formMode == FormMode.forAdd) {
-			setFormData(jf, pageItf.formData); // clear data
+			mCommon.setFormData(jf, pageItf.formData); // clear data
 		}
 		else if (pageItf.formMode == FormMode.forSet) {
 			showObject();
 		}
 		else if (pageItf.formMode == FormMode.forFind) {
 			// TODO: 之前不是forFind则应清空
-			setFormData(jf); // clear data
+			mCommon.setFormData(jf); // clear data
 		}
 		showByFormMode(jpage, pageItf.formMode);
 	}
@@ -239,7 +240,7 @@ function initPageDetail(jpage, opt)
 
 		function onGet(data)
 		{
-			setFormData(jf, data, {setOrigin: true});
+			mCommon.setFormData(jf, data, {setOrigin: true});
 			opt.onGet && opt.onGet(data);
 		}
 	}

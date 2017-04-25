@@ -1,5 +1,5 @@
-jdModule("jdcloud.mui", ns_jdcloud_mui_list_page);
-function ns_jdcloud_mui_list_page()
+jdModule("jdcloud.mui", JdcloudListPage);
+function JdcloudListPage()
 {
 var self = this;
 var mCommon = jdModule("jdcloud.common");

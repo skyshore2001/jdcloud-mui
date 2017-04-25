@@ -14,7 +14,7 @@
 - 在muiInit事件中调用MUI.showPage。
 - 在A页面的pagebeforeshow事件中调用MUI.showPage(B)，不会闪烁，且点返回时不应回到A页面
  */
-function ns_jdcloud_mui_showPage()
+function JdcloudMuiPage()
 {
 var self = this;
 var mCommon = jdModule("jdcloud.common");

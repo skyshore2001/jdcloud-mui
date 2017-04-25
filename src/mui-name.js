@@ -1,5 +1,5 @@
-jdModule("jdcloud.mui.name", ns_jdcloud_mui_name);
-function ns_jdcloud_mui_name()
+jdModule("jdcloud.mui.name", JdcloudMuiName);
+function JdcloudMuiName()
 {
 var self = this;
 var mCommon = jdModule("jdcloud.common");
