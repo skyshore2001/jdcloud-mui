@@ -1,4 +1,4 @@
-function ns_jdcloud_callSvr()
+function JdcloudCall()
 {
 var self = this;
 var mCommon = jdModule("jdcloud.common");
@@ -18,6 +18,7 @@ ctx: {ac, tm, tv, ret}
 self.lastError = null;
 var m_tmBusy;
 var m_manualBusy = 0;
+var m_jLoader;
 var m_appVer;
 
 /**
@@ -408,9 +409,9 @@ function makeUrl(action, params)
 		params = {};
 
 	var url;
-	var extMakeUrl = self.callSvrExt[ext] && self.callSvrExt[ext].makeUrl;
-	if (extMakeUrl) {
-		url = extMakeUrl(action, params);
+	var fnMakeUrl = self.callSvrExt[ext] && self.callSvrExt[ext].makeUrl;
+	if (fnMakeUrl) {
+		url = fnMakeUrl(action, params);
 	}
 	// 缺省接口调用：callSvr('login') 或 callSvr('php/login.php');
 	else if (action.indexOf(".php") < 0)
