@@ -30,8 +30,6 @@ var ActionStr = {
 	CA: "取消"
 };
 
-// 模拟接口返回数据
-MUI.loadScript("mockdata.js", {async: false, cache: false});
 // }}}
 
 // ====== global {{{
