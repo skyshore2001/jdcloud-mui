@@ -14,14 +14,16 @@ jdcloud-mui以页面路由和接口调用为核心，提供多逻辑页支持和
 它默认使用“**业务查询协议(BQP)**”与后端服务接口通讯，如果后端服务接口不符合该协议，则需要设置接口适配。
 筋斗云后端框架可开发符合业务查询协议的接口，推荐搭配使用，可以使用以下开源框架实现筋斗云后端服务：
 
-- jdclud-php (筋斗云后端php版本)
-- jdclud-java (筋斗云后端java版本)
-- jdclud-cs (筋斗云后端.net版本)
+- [jdclud-php](https://github.com/skyshore2001/jdcloud-php) (筋斗云后端php版本)
+- [jdclud-java](https://github.com/skyshore2001/jdcloud-java) (筋斗云后端java版本)
+- [jdclud-cs](https://github.com/skyshore2001/jdcloud-cs) (筋斗云后端.net版本)
 
 相关的开源框架：
 
-- 筋斗云前端项目模板`jdcloud-m`，其核心就是使用`jdcloud-mui`库，并添加了编译优化、发布与持续集成、原生手机应用支持等实用工具，如果是新项目，推荐直接以`jdcloud-m`作为初始项目模板。
-- 如果要创建电脑上使用的H5应用程序（如创建管理端应用），可以使用筋斗云管理端单页应用框架`jdcloud-wui`.
+- 筋斗云前端项目模板[jdcloud-m](https://github.com/skyshore2001/jdcloud-m)，其核心就是使用`jdcloud-mui`库，并添加了编译优化、发布与持续集成、原生手机应用支持等实用工具，如果是新项目，推荐直接以`jdcloud-m`作为初始项目模板。
+- 如果要创建电脑上使用的H5应用程序（如创建管理端应用），可以使用筋斗云管理端单页应用框架[jdcloud-wui](https://github.com/skyshore2001/jdcloud-wui).
+
+参考：[业务查询协议](https://github.com/skyshore2001/daca/blob/master/BQP.md)
 
 ## 使用方法
 
@@ -42,31 +44,32 @@ weui是一套同微信原生视觉体验一致的基础样式库，由微信官�
 
 在示例应用中，index.html为框架页，大致如下：
 
-	引入jquery等依赖库...
-	引入jdcloud-mui库：<script src="../lib/jdcloud-mui.min.js"></script>
-	引入h5应用自身逻辑，如 index.js
+```html
+引入jquery等依赖库...
+引入jdcloud-mui库：<script src="../lib/jdcloud-mui.min.js"></script>
+引入h5应用自身逻辑，如 index.js
 
-	引入模拟接口数据：在没有后端服务时，框架支持模拟接口数据。正式上线时应删除。
-	<script src="mockdata.js"></script>
+引入模拟接口数据：在没有后端服务时，框架支持模拟接口数据。正式上线时应删除。
+<script src="mockdata.js"></script>
 
-	<body class="mui-container">
+<body class="mui-container">
 
-	<!-- footer -->
-	<div id="footer">
-		<a href="#home" mui-opt="ani:'none'">
-			<!--span class="icon icon-home"></span-->
-			<span>首页</span>
-		</a>
-		<a href="#orders" mui-opt="ani:'none'">
-			<span>订单</span>
-		</a>
-		<a href="#me" mui-opt="ani:'none'">
-			<span>我</span>
-		</a>
-	</div>
+<!-- footer -->
+<div id="footer">
+	<a href="#home" mui-opt="ani:'none'">
+		<!--span class="icon icon-home"></span-->
+		<span>首页</span>
+	</a>
+	<a href="#orders" mui-opt="ani:'none'">
+		<span>订单</span>
+	</a>
+	<a href="#me" mui-opt="ani:'none'">
+		<span>我</span>
+	</a>
+</div>
 
-	</body>
-
+</body>
+```
 一般在body组件上添加class="mui-container"，表示页面都将显示在这里，在程序中可以用`MUI.container`来获取到这个对象。
 
 逻辑页以外部模块的方式在外部page目录中定义，使用时以ajax方式动态加载。
@@ -79,16 +82,17 @@ weui是一套同微信原生视觉体验一致的基础样式库，由微信官�
 我们制作一个仅显示"hello world"的逻辑页面。
 
 制作一个逻辑页面，存到文件page/hello.html:
-
-	<div>
-		<div class="hd">
-			<h2>HelloWorld</h2>
-		</div>
-
-		<div class="bd">
-			<p>Hello, world</p>
-		</div>
+```html
+<div>
+	<div class="hd">
+		<h2>HelloWorld</h2>
 	</div>
+
+	<div class="bd">
+		<p>Hello, world</p>
+	</div>
+</div>
+```
 
 这是个html片段，其中`class="hd"`与`class="bd"`分别代表逻辑页的标题栏和主体部分。一般应保持这样的结构，即使不需要标题栏，也建议保留hd这个div，将其设置隐藏即可(`style="display:none"`)。
 
@@ -99,17 +103,17 @@ weui是一套同微信原生视觉体验一致的基础样式库，由微信官�
 showPage函数会按需动态加载逻辑页，一旦从外部加载到页面，则会自动为它设置id为页面名，如上例中会添加`id="hello"`。
 
 也可以通过链接，如在首页page/home.html中添加一个链接过来：
-
+```html
 	...
 	<div class="bd">
 		...
 		<li><a href="#hello">Hello</a></li>
 	</div>
-
+```
 点击链接，即可进行该页。点击浏览器的返回按钮，可以回到首页。在返回时，没有网页刷新的过程，这也是变脸式应用的典型特点。
 
 如果想为逻辑页添加一些样式，且样式只在这个逻辑页中生效，则直接在页面内嵌入样式：
-
+```html
 	<div>
 		<style>
 		p {
@@ -120,7 +124,7 @@ showPage函数会按需动态加载逻辑页，一旦从外部加载到页面，
 		<div class="hd"> ... </div>
 		<div class="bd"> ... </div>
 	</div>
-
+```
 **jdcloud-mui支持自动限定逻辑页样式作用域。** 框架在动态加载该页时，会限制这个样式只会用于当前逻辑页，不会污染到其它页面。
 
 上面修改逻辑页后，不必刷新整个H5应用，可以在控制台上直接运行：
@@ -238,12 +242,12 @@ function initPageHello()
 上面代码写好了，后端接口还没做好怎么测试？
 
 **筋斗云支持模拟接口返回数据。** 在mockdata.js中，可以设置接口的模拟返回数据：
-
+```javascript
 	MUI.mockData = {
 		...
 		"hello": [0, "jdcloud"]
 	}
-
+```
 此处还可以用函数做更复杂的基于参数的模拟，详见API文档，查询`MUI.mockData`。
 
 运行H5应用，进入hello页面，看看是不是可以正常显示了？
@@ -354,13 +358,13 @@ serverUrl选项设置了服务端的URL地址，因为我们将"api.php"放在�
 ```
 
 我们在mockdata.js中设置好模拟数据用于测试：
-
+```javascript
 	MUI.mockData = {
 		"User.get": {code: 0, msg: "success", data: user},
 		"hello": {code: 0, msg: "success", data:"myworld"}
 		...
 	}
-
+```
 上例中，`User.get`接口在显示首页是会调用，所以和"hello"接口一并模拟下。
 
 测试接口调用：
