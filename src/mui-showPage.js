@@ -314,6 +314,24 @@ function setUrl(url)
 	setHash(m_curState.pageRef, url);
 }
 
+/**
+@fn MUI.deleteUrlParam(param)
+
+自动修改g_args全局变量和当前url（会调用MUI.setUrl方法）。
+
+	MUI.deleteUrlParam("wxpay");
+	// 原先url为 http://myserver/myapp/index.html?wxpay=ORDR-11&storeId=1
+	// 调用后为 http://myserver/myapp/index.html?storeId=1
+
+ */
+self.deleteUrlParam = deleteUrlParam;
+function deleteUrlParam(param)
+{
+	delete g_args[param];
+	var search = MUI.deleteParam(location.search, param);
+	MUI.setUrl(search);
+}
+
 function callInitfn(jo, paramArr)
 {
 	var ret = jo.data("mui.init");

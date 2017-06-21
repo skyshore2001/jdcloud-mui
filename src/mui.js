@@ -788,7 +788,8 @@ function hd_back(pageRef)
 	if (n <= 1) {
 		if (pageRef == null)
 			pageRef = MUI.options.homePage;
-		if (m_allowedEntries==null || m_allowedEntries.indexOf("#" + MUI.activePage.attr("id")) >=0)
+		//if (m_allowedEntries==null || m_allowedEntries.indexOf("#" + MUI.activePage.attr("id")) >=0)
+		if (! isLoginPage(MUI.activePage.attr("id")))
 			MUI.showPage(pageRef);
 		return;
 	}
