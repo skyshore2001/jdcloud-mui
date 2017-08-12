@@ -22,7 +22,7 @@
 
 ## 构建与生成文档
 
-运行`make`可生成合并后的库文件(jdcloud-mui.js)、参考文档(jdcloud-mui.html)以及最小化后的库文件(jdcloud-mui.min.js)
+运行`make -B`(-B为强制生成)可生成合并后的库文件(jdcloud-mui.js)、参考文档(jdcloud-mui.html)以及最小化后的库文件(jdcloud-mui.min.js)
 
 如果是外部更新了jdcloud-mui.js这个库文件，可以运行`make split`将jdcloud-mui.js拆分还原到src目录中的源文件中。
 

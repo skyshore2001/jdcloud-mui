@@ -33,7 +33,7 @@ code {
 </head>
 
 <h1>MUI</h1>
-<div>最后更新：2017-07-17</div>
+<div>最后更新：2017-08-12</div>
 <h2>Modules</h2>
 <div class="toc">
 <p><a href="#MUI">MUI (module)</a></p>
@@ -117,6 +117,7 @@ code {
 <p><a href="#MUI.setFormSubmit">MUI.setFormSubmit (fn)</a></p>
 <p><a href="#MUI.setOnError">MUI.setOnError (fn)</a></p>
 <p><a href="#MUI.setUrl">MUI.setUrl (fn)</a></p>
+<p><a href="#MUI.setUrlParam">MUI.setUrlParam (fn)</a></p>
 <p><a href="#MUI.setupCallSvrViaForm">MUI.setupCallSvrViaForm (fn)</a></p>
 <p><a href="#MUI.setupDialog">MUI.setupDialog (fn)</a></p>
 <p><a href="#MUI.showDialog">MUI.showDialog (fn)</a></p>
@@ -577,7 +578,10 @@ var dt2 = parseTime("10:11");</code></pre><hr>
 <p>示例：</p>
 <pre><code>var dt1 = parseDate("2012-01-01");
 var dt2 = parseDate("2012/01/01 20:00:09");
-var dt3 = parseDate("2012.1.1 20:00");</code></pre><hr>
+var dt3 = parseDate("2012.1.1 20:00");</code></pre>
+<p>支持时区，时区格式可以是&quot;+8&quot;, &quot;+08&quot;, &quot;+0800&quot;, &quot;Z&quot;这些，如</p>
+<pre><code>parseDate("2012-01-01T09:10:20.328+0800");
+parseDate("2012-01-01T09:10:20Z");</code></pre><hr>
 <h2 id="Date.add">@fn Date.add(sInterval, n)</h2>
 <p>为日期对象加几天/小时等。参数n为整数，可以为负数。</p>
 <p class="param"><strong>@param sInterval</strong>  Enum. 间隔单位. d-天; m-月; y-年; h-小时; n-分; s-秒</p>
@@ -1390,8 +1394,14 @@ callSvr("User.get", {res: "id,phone"}, api_UserGet);</code></pre>
 <h2 id="MUI.showFirstPage">@var MUI.showFirstPage?=true</h2>
 <p>如果为false, 则必须手工执行 MUI.showPage 来显示第一个页面。</p><hr>
 <h2 id="MUI.setUrl">@fn MUI.setUrl(url)</h2>
-<p>设置当前地址栏显示的URL.<br />
-一般用于将应用程序内部参数显示到URL中，以便在刷新页面时仍然可显示相同的内容，或用于分享链接给别人。</p>
+<p>设置当前地址栏显示的URL. 如果url中不带hash部分，会自动加上当前的hash.</p>
+<pre><code>MUI.setUrl("page/home.html"); // 设置url
+MUI.setUrl("?a=1&amp;b=2"); // 设置url参数
+MUI.setUrl("?"); // 清除url参数部分。</code></pre>
+<p>如果要设置或删除参数，建议使用：</p>
+<pre><code>MUI.setUrlParam("a", 1); // 如果参数存在，则会自动覆盖。
+MUI.deleteUrlParam("a"); // 从url中删除参数a部分，如果g_args中有参数a，也同时删除。</code></pre>
+<p>一般用于将应用程序内部参数显示到URL中，以便在刷新页面时仍然可显示相同的内容，或用于分享链接给别人。</p>
 <p>例如订单页的URL为<code>http://server/app/#order</code>，现在希望：</p>
 <ul>
 <li>要显示<code>id=100</code>的订单，在URL中显示<code>http://server/app/?orderId=100#order</code></li>
@@ -1445,6 +1455,11 @@ callSvr("User.get", {res: "id,phone"}, api_UserGet);</code></pre>
 <pre><code>MUI.deleteUrlParam("wxpay");
 // 原先url为 http://myserver/myapp/index.html?wxpay=ORDR-11&amp;storeId=1
 // 调用后为 http://myserver/myapp/index.html?storeId=1</code></pre><hr>
+<h2 id="MUI.setUrlParam">@fn MUI.setUrlParam(param, val)</h2>
+<p>修改当前url，添加指定参数。<br />
+e.g. </p>
+<pre><code>MUI.setUrlParam("wxauth", 1);</code></pre>
+<p class="see"><strong>@see <a href="#MUI.deleteUrlParam">MUI.deleteUrlParam</a> <a href="#MUI.appendParam">MUI.appendParam</a></strong> </p><hr>
 <h2 id="MUI.showPage">@fn MUI.showPage(pageRef, opt)</h2>
 <p class="param"><strong>@param pageId</strong>  String. 页面名字. 仅由字母、数字、"_"等字符组成。</p>
 <p class="param"><strong>@param pageRef</strong>  String. 页面引用（即location.hash），以"#"开头，后面可以是一个pageId（如"#home"）或一个相对页的地址（如"#info.html", "#emp/info.html"）。</p>
@@ -1807,7 +1822,7 @@ function showOrderList(isRefresh)
         isRefresh = true;
     if (isRefresh)
         jlst.empty();
-    param._pagekey = nextkey;
+    param.pagekey = nextkey;
 
     callSvr("Ordr.query", param, function (data) {
         // create items and append to jlst
@@ -1992,14 +2007,14 @@ callSvr(queryParam.ac, queryParam, function (data) {
 });</code></pre>
 <h4 id="initPageList-5 参数说明">5 参数说明</h4>
 <p class="param"><strong>@param opt</strong>  {onGetQueryParam?, onAddItem?, onNoItem?, pageItf?, navRef?=">.hd .mui-navbar", listRef?=">.bd .p-list", onBeforeLoad?, onLoad?, onGetData?, canPullDown?=true, onRemoveAll?}</p>
-<p class="param"><strong>@param opt</strong>  分页相关 { pageszName?="_pagesz", pagekeyName?="_pagekey" }</p>
+<p class="param"><strong>@param opt</strong>  分页相关 { pageszName?="pagesz", pagekeyName?="pagekey" }</p>
 <p class="param"><strong>@param opt.onGetQueryParam</strong>  Function(jlst, queryParam/o)</p>
 <p>queryParam: {ac?, res?, cond?, ...}</p>
 <p>框架在调用callSvr之前，先取列表对象jlst上的data-queryParam属性作为queryParam的缺省值，再尝试取data-ac, data-res, data-cond, data-orderby属性作为queryParam.ac等参数的缺省值，<br />
 最后再回调 onGetQueryParam。</p>
 <pre><code>&lt;ul data-queryParam="{q: 'famous'}" data-ac="Person.query" data-res="*,familyName" data-cond="status='PA' and name like '王%'"&gt;
 &lt;/ul&gt;</code></pre>
-<p>此外，框架将自动管理 queryParam._pagekey/_pagesz 参数。</p>
+<p>此外，框架将自动管理 queryParam.pagekey/pagesz 参数。</p>
 <p class="param"><strong>@param opt.onAddItem</strong>  (jlst, itemData, param)</p>
 <p>param={idx, arr, isFirstPage}</p>
 <p>框架调用callSvr之后，处理每条返回数据时，通过调用该函数将itemData转换为DOM item并添加到jlst中。<br />
@@ -2079,7 +2094,7 @@ function onChoose(order)
 <h4 id="initPageList-8 分页机制与后端接口适配">8 分页机制与后端接口适配</h4>
 <p>默认按BQP协议的分页机制访问服务端，其规则是：</p>
 <ul>
-<li>请求通过 _pagesz 参数指定页大小</li>
+<li>请求通过 pagesz 参数指定页大小</li>
 <li>
 <p>如果不是最后一页，服务端应返回nextkey字段；返回列表的格式可以是 table格式如 </p>
 <pre><code>{
@@ -2096,7 +2111,7 @@ function onChoose(order)
     nextkey: 2
 }</code></pre>
 </li>
-<li>请求下一页时，设置参数_pagekey = nextkey，直到服务端不返回 nextkey 字段为止。</li>
+<li>请求下一页时，设置参数pagekey = nextkey，直到服务端不返回 nextkey 字段为止。</li>
 </ul>
 <p>例1：假定后端分页机制为(jquery-easyui datagrid分页机制):</p>
 <ul>
@@ -2278,6 +2293,26 @@ function initPagePerson()
 PagePerson.showForAdd({familyId: 1}); // 添加人物，已设置familyId为1
 PagePerson.showForSet(person); // 以person对象内容显示人物，可更新。
 PagePerson.showForSet({id: 3}); // 以id=3查询人物并显示，可更新。</code></pre>
+<p>页面接口常常实现如下：</p>
+<pre><code>var PagePerson = {
+    // @fn PagePerson.showForAdd(formData?)
+    // formData={familyId, parentId?, parentOf?}
+    showForAdd: function(formData) {
+        this.formMode = FormMode.forAdd;
+        this.formData = formData;
+        MUI.showPage("#person");
+    },
+    // @fn PagePerson.showForSet(formData)
+    // formData={id,...}
+    showForSet: function (formData) {
+        this.formMode = FormMode.forSet;
+        this.formData = formData;
+        MUI.showPage("#person");
+    },
+
+    formMode: null,
+    formData: null,
+};</code></pre>
 <p>对于forSet模式，框架先检查formData中是否只有id属性，如果是，则在进入页面时会自动调用{obj}.get获取数据.</p>
 <pre><code>&lt;form action="Person"&gt;
     &lt;div name=familyName&gt;&lt;/div&gt;
