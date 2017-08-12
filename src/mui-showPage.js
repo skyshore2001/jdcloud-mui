@@ -247,7 +247,17 @@ m_curState==null: 首次进入，或hash改变
 /**
 @fn MUI.setUrl(url)
 
-设置当前地址栏显示的URL. 
+设置当前地址栏显示的URL. 如果url中不带hash部分，会自动加上当前的hash.
+
+	MUI.setUrl("page/home.html"); // 设置url
+	MUI.setUrl("?a=1&b=2"); // 设置url参数
+	MUI.setUrl("?"); // 清除url参数部分。
+
+如果要设置或删除参数，建议使用：
+
+	MUI.setUrlParam("a", 1); // 如果参数存在，则会自动覆盖。
+	MUI.deleteUrlParam("a"); // 从url中删除参数a部分，如果g_args中有参数a，也同时删除。
+
 一般用于将应用程序内部参数显示到URL中，以便在刷新页面时仍然可显示相同的内容，或用于分享链接给别人。
 
 例如订单页的URL为`http://server/app/#order`，现在希望：
@@ -310,7 +320,12 @@ self.setUrl = setUrl;
 function setUrl(url)
 {
 	if (m_curState == null)
+	{
+		if (url.indexOf("#") < 0 && location.hash)
+			url += location.hash;
+		history.replaceState(null, null, url);
 		return;
+	}
 	setHash(m_curState.pageRef, url);
 }
 
@@ -328,7 +343,31 @@ self.deleteUrlParam = deleteUrlParam;
 function deleteUrlParam(param)
 {
 	delete g_args[param];
-	var search = MUI.deleteParam(location.search, param);
+	var search = mCommon.deleteParam(location.search, param);
+	MUI.setUrl(search);
+}
+
+/**
+@fn MUI.setUrlParam(param, val)
+
+修改当前url，添加指定参数。
+e.g. 
+
+	MUI.setUrlParam("wxauth", 1);
+
+@see MUI.deleteUrlParam,MUI.appendParam
+ */
+self.setUrlParam = setUrlParam;
+function setUrlParam(param, val)
+{
+	var search = location.search;
+	if (search.indexOf(param + "=") >= 0) {
+		search = mCommon.deleteParam(search, param);
+	}
+	search = mCommon.appendParam(search, param + "=" + val);
+	if (search.indexOf('?&') >=0) {
+		search = search.replace('?&', '?');
+	}
 	MUI.setUrl(search);
 }
 
@@ -913,7 +952,7 @@ function activateElem(jo)
 	{
 		var ref = jo.attr("mui-linkto");
 		if (ref) {
-			var jlink = self.activePage.find(ref);
+			var jlink = jo.closest(".mui-page").find(ref); // DONT use self.activePage that may be wrong on pagebeforeshow
 			jlink.toggle(active);
 			jlink.toggleClass("active", active);
 		}
@@ -1168,6 +1207,7 @@ function app_alert(msg)
 	var opt = self.getOptions(jdlg);
 	if (opt.type == null) {
 		jdlg.find("#btnOK, #btnCancel").click(app_alert_click);
+		jdlg.keydown(app_alert_keydown);
 	}
 	opt.type = type;
 	opt.fn = fn;
@@ -1179,6 +1219,9 @@ function app_alert(msg)
 	jtxt.toggle(type == "p");
 	if (type == "p") {
 		jtxt.val(alertOpt.defValue);
+		setTimeout(function () {
+			jtxt.focus();
+		});
 	}
 
 	jdlg.find(".p-title").html(s);
@@ -1205,16 +1248,33 @@ function app_alert_click(ev)
 	}
 	var btnId = this.id;
 	if (opt.fn && btnId == "btnOK") {
-		var param;
 		if (opt.type == "p") {
-			param = jdlg.find("#txtInput").val();
+			var text = jdlg.find("#txtInput").val();
+			if (text != "") {
+				opt.fn(text);
+			}
+			else if (opt.alertOpt.onCancel) {
+				opt.alertOpt.onCancel();
+			}
 		}
-		opt.fn(param);
+		else {
+			opt.fn();
+		}
 	}
 	else if (btnId == "btnCancel" && opt.alertOpt.onCancel) {
 		opt.alertOpt.onCancel();
 	}
 	self.closeDialog(jdlg, opt.isClone);
+}
+
+function app_alert_keydown(ev)
+{
+	if (ev.keyCode == 13) {
+		return $(this).find("#btnOK").click();
+	}
+	else if (ev.keyCode == 27) {
+		return $(this).find("#btnCancel").click();
+	}
 }
 
 /**

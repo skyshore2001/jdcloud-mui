@@ -20,9 +20,13 @@
 
 运行make会据此合并生成发布文件 jdcloud-mui.js 及 jdcloud-mui.min.js
 
-## 生成文档
+## 构建与生成文档
 
-运行make doc生成文档。
+运行`make`可生成合并后的库文件(jdcloud-mui.js)、参考文档(jdcloud-mui.html)以及最小化后的库文件(jdcloud-mui.min.js)
+
+如果是外部更新了jdcloud-mui.js这个库文件，可以运行`make split`将jdcloud-mui.js拆分还原到src目录中的源文件中。
+
+运行`make doc`生成文档。
 
 ## 模块惯例
 

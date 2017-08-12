@@ -129,6 +129,28 @@ onDel: Function(); 删除对象后回调.
 	PagePerson.showForSet(person); // 以person对象内容显示人物，可更新。
 	PagePerson.showForSet({id: 3}); // 以id=3查询人物并显示，可更新。
 
+页面接口常常实现如下：
+
+	var PagePerson = {
+		// @fn PagePerson.showForAdd(formData?)
+		// formData={familyId, parentId?, parentOf?}
+		showForAdd: function(formData) {
+			this.formMode = FormMode.forAdd;
+			this.formData = formData;
+			MUI.showPage("#person");
+		},
+		// @fn PagePerson.showForSet(formData)
+		// formData={id,...}
+		showForSet: function (formData) {
+			this.formMode = FormMode.forSet;
+			this.formData = formData;
+			MUI.showPage("#person");
+		},
+
+		formMode: null,
+		formData: null,
+	};
+
 对于forSet模式，框架先检查formData中是否只有id属性，如果是，则在进入页面时会自动调用{obj}.get获取数据.
 
 	<form action="Person">

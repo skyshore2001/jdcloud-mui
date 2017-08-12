@@ -1,4 +1,4 @@
-VER=1.0
+VER=1.1
 NAME=jdcloud-mui
 DOC=$(NAME).html
 OUT=lib/$(NAME).js
