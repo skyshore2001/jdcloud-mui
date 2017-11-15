@@ -681,6 +681,14 @@ function showPage(pageRef, opt)
 
 		function initPage()
 		{
+			var dep = self.evalAttr(jpage, "mui-deferred");
+			if (dep) {
+				self.assert(dep.then, "*** mui-deferred attribute DOES NOT return a deferred object");
+				jpage.removeAttr("mui-deferred");
+				dep.then(initPage);
+				return;
+			}
+
 			// 检测运营商js劫持，并自动恢复。
 			var fname = jpage.attr("mui-initfn");
 			if (fname && window[fname] == null) {
@@ -894,7 +902,8 @@ function popPageStack(n)
 
 $(window).on('popstate', function (ev) {
 	m_curState = ev.originalEvent.state;
-	showPage();
+	if (m_curState) // bugfix: 红米等某些手机在MUI.options.showHash=false模式下，且在安卓APP中，进入非主页的入口页，会自动跳转回主页。
+		showPage();
 });
 
 
@@ -1108,6 +1117,7 @@ function setupDialog(jdlg, initfn)
 /**
 @fn MUI.app_alert(msg, [type?=i], [fn?], opt?={timeoutInterval?, defValue?, onCancel()?})
 @alias app_alert
+@alias #muiAlert
 @param type 对话框类型: "i": info, 信息提示框; "e": error, 错误框; "w": warning, 警告框; "q": question, 确认框(会有"确定"和"取消"两个按钮); "p": prompt, 输入框
 @param fn Function(text?) 回调函数，当点击确定按钮时调用。当type="p" (prompt)时参数text为用户输入的内容。
 @param opt Object. 可选项。 timeoutInterval表示几秒后自动关闭对话框。defValue用于输入框(type=p)的缺省值.

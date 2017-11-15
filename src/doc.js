@@ -192,6 +192,63 @@ style将被插入到head标签中，并自动添加属性`mui-origin={pageId}`.
 
 除此之外如果多次调用showPage（包括在pageshow事件中调用），一般最终显示的是最后一次调用的页面，过程中可能产生闪烁，且可能会丢失一些pageshow/pagehide事件，应尽量避免。
 
+#### 逻辑页声明依赖库
+
+@key mui-deferred
+
+（版本v4.2）
+如果逻辑页依赖某一个或多个库，这些库不想在主页面中用script默认加载，这时可以使用`mui-deferred`属性。
+逻辑页初始化函数mui-initfn将在该deferred对象操作成功后执行。
+
+示例：某逻辑页依赖百度地图的js库，该js库使用动态加载：
+
+	// 主逻辑中定义返回Deferred对象
+	window.dfdBaiduMap = MUI.loadScript("http://api.map.baidu.com/getscript?v=2.0&ak=YOUR-APP-KEY");
+
+	// map.html 逻辑页中声明依赖该对象
+	<div mui-initfn="initPageMap" mui-script="map.js" mui-deferred="dfdBaiduMap">
+		...
+	</div>
+
+	// map.js
+	function initPageMap()
+	{
+		var jpage = this;
+		// 这时可以安全依赖库的对象，如BMap对象
+	}
+
+如果不使用mui-deferred属性，则需要在initPageMap中小心的来写异步逻辑，比如：
+
+	// map.js
+	function initPageMap()
+	{
+		var jpage = this;
+		// 可以安全使用BMap对象
+		dfdBaiduMap.then(init);
+
+		function init() { ... }
+	}
+
+一般会将加载依赖库包装成一个函数，比如要使用百度echarts显示统计图的页面，可定义函数：
+
+	var dfdStatLib_;
+	function loadStatLib()
+	{
+		if (dfdStatLib_ == null) {
+			dfdStatLib_ = $.when(
+				MUI.loadScript("../web/lib/echarts.min.js"),
+				MUI.loadScript("../web/lib/jdcloud-wui-stat.js")
+			);
+		}
+		return dfdStatLib_;
+	}
+
+依赖echarts的页面，可以设置：
+
+	<div mui-deferred="loadStatLib()">
+		...
+	</div>
+
 ### 页面路由
 
 默认路由：
@@ -234,18 +291,84 @@ URL也可以显示为文件风格，比如在设置：
 
 ### 导航栏
 
-@key .mui-navbar 导航栏
+@key .mui-navbar 导航栏，Tab页
 @key .mui-navbar.noactive
 
 默认行为是点击后添加active类（比如字体发生变化），如果不需要此行为，可再添加noactive类。
+示例：
+
+	<div class="mui-navbar">
+		<a mui-linkto="#lst1">待服务</a>
+		<a mui-linkto="#lst2">已完成</a>
+	</div>
 
 ### 对话框
 
 @key .mui-dialog 对话框
 
+对话框与页面(.mui-page)类似，可以包含hd, bd等部分。
+它一般包含在一个页面中，id以"dlg"开头。示例：
+
+	<div id="dlgAddPerson" class="mui-dialog">
+		<div class="hd">
+			<h2>添加人物</h2>
+		</div>
+
+		<div class="bd weui_cells weui_cells_access">
+			<div class="weui_cell">
+				<label class="weui_cell_hd weui_label" style="min-width:7em">为<span class="p-name"></span>添加:</label>
+				<select id="cboRelation" class="weui_cell_primary weui_select right" style="min-width:90px">
+					<option value="parent">父亲</option>
+					<option value="child">子女</option>
+				</select>
+				<div class="weui_cell_ft"></div>
+			</div>
+			<div class="weui_cell nowrap" style="display:block;">
+				<a id="btnOK" class="mui-btn primary">确定</a>
+				<a id="btnCancel" class="mui-btn">取消</a>
+			</div>
+		</div>
+
+	</div>
+
+要弹出这个对话框：
+
+	MUI.showDialog(jpage.find("#dlgAddPerson"));
+
+或者用a标签链接打开：
+
+	<a href="#dlgAddPerson">添加人物</a>
+
+@see MUI.showDialog 弹出对话框
+@see #muiAlert,MUI.app_alert 提示框(app_alert)是一个id为`muiAlert`的特别对话框。
+@see .mui-menu 弹出菜单，也是一类特别的对话框。
+
 ### 弹出菜单
 
+菜单是特殊的一类对话框。因而id以"dlg"开头，以便a标签通过href链接时，可直接弹出菜单（即打开对话框）。
+
 @key .mui-menu 菜单
+
+示例：添加右上角菜单（习惯上左上角为返回按钮，右上角为菜单按钮）
+
+	<div class="hd">
+		<a href="javascript:hd_back();" class="icon icon-back"></a>
+		<a href="#dlgMenu" class="icon icon-menu"></a>
+		<h2>谱系图</h2>
+	</div>
+
+	<!-- 左上角弹出菜单，用top类标识 -->
+	<ul id="dlgMenu" class="mui-menu top">
+		<a href="javascript:PagePerson.showForAdd();"><li><i class="icon icon-add"></i>添加人物</li></a>
+		<li id="mnuQueryPerson"><i class="icon icon-search"></i>查找人物</li>
+		<a href="#dlgMenuShare"><li><i class="icon icon-viewfav"></i>分享到</li></a>
+	</ul>
+
+	<!-- 弹出菜单 -->
+	<ul id="dlgMenuShare" class="mui-menu">
+		<li id="li1">微信好友</li>
+		<li id="li2">微信朋友圈</li>
+	</ul>
 
 ### 底部导航
 
