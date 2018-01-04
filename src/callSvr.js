@@ -885,7 +885,9 @@ function callSvr(ac, params, fn, postParams, userOptions)
 		ctx.getMockData = function () {
 			var d = self.mockData[ac0];
 			var param1 = $.extend({}, url.params);
-			var postParam1 = $.extend({}, postParams);
+			var postParam1 = ( ac0=="batch"
+				? eval("(" + postParams + ")")
+				: $.extend({}, postParams));
 			if ($.isFunction(d)) {
 				d = d(param1, postParam1);
 			}
@@ -909,14 +911,12 @@ function callSvr(ac, params, fn, postParams, userOptions)
 		data: postParams,
 		type: method,
 		success: fn,
+		// 允许跨域使用cookie/session/authorization header
+		xhrFields: {
+			withCredentials: true
+		},
 		ctx_: ctx
 	};
-	if (ext) {
-		// 允许跨域
-		opt.xhrFields = {
-			withCredentials: true
-		};
-	}
 	// support FormData object.
 	if (window.FormData && postParams instanceof FormData) {
 		opt.processData = false;

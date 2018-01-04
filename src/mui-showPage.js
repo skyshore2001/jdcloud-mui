@@ -918,8 +918,11 @@ function fixPageSize()
 		var jo, hd, ft;
 		jo= jpage.find(">.hd");
 		hd = (jo.size() > 0 && jo.css("display") != "none")? jo.height() : 0;
-		jo = jpage.find(">.ft");
-		ft = (jo.size() > 0 && jo.css("display") != "none")? jo.height() : 0;
+		ft = 0;
+		jpage.find(">.ft").each(function () {
+			if ($(this).is(":visible"))
+				ft += $(this).height();
+		});
 		jpage.height(H);
 		jpage.find(">.bd").css({
 			top: hd,
@@ -1025,6 +1028,12 @@ function enhanceFooter(jfooter)
 			if (jfooter.parent()[0] !== m_jstash[0])
 				jfooter.appendTo(m_jstash);
 			return;
+		}
+		var jft = jpage.find(".ft");
+		if (jft.size() > 0) {
+			setTimeout(function () {
+				jft.css("bottom", jfooter.height());
+			});
 		}
 		jfooter.appendTo(jpage);
 		activateElem($(e));

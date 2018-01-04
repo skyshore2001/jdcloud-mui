@@ -31,6 +31,10 @@
 
 每个逻辑页面(page)以及它对应的脚本(js)均可以独立出一个文件开发，也可以直接嵌在主页面的应用容器中。
 
+@key .mui-page 逻辑页面。
+@key mui-script DOM属性。逻辑页面对应的JS文件。
+@key mui-initfn DOM属性。逻辑页面对应的初始化函数，一般包含在mui-script指定的JS文件中。
+
 如添加一个订单页，使用外部页面，可以添加一个order.html (html片段):
 
 	<div mui-initfn="initPageOrder" mui-script="order.js">
@@ -45,9 +49,41 @@
 		</div>
 	</script>
 
-@key .mui-page 逻辑页面。
-@key mui-script DOM属性。逻辑页面对应的JS文件。
-@key mui-initfn DOM属性。逻辑页面对应的初始化函数，一般包含在mui-script指定的JS文件中。
+@key .hd 页面顶栏
+@key .bd 页面主体
+@key .ft 页面底栏
+@key .btn-icon 顶栏图标按钮
+
+页面中常常包含hd, bd等结构，如
+
+	<div mui-initfn="initPageMe">
+		<div class="hd">
+			<a href="javascript:hd_back();" class="btn-icon"><i class="icon icon-back"></i></a>
+			<h2>个人信息</h2>
+		</div>
+
+		<div class="bd">
+		this is the body
+		</div>
+
+		<div class="ft">
+		this is the footer
+		</div>
+	</div>
+
+app.css中定义了`btn-icon`为顶栏图标按钮类，如果在`hd`中有多个`btn-icon`，则依次为左一，右一，左二，右二按钮，例如：
+
+	<div class="hd">
+		<!-- 左一: 返回按钮 -->
+		<a href="javascript:hd_back();" class="btn-icon"><i class="icon icon-back"></i></a>
+		<!-- 右一: 更多选项按钮 -->
+		<a href="#dlgMenu" class="btn-icon"><i class="icon icon-menu"></i></a>
+		<!-- 左二: 无 -->
+		<a />
+		<!-- 右二: 编辑按钮 -->
+		<a class="btn-icon"><i class="icon icon-edit"></i></a>
+		<h2>标题</h2>
+	</div>
 
 该页面代码模块（即初始化函数）可以放在一个单独的文件order.js:
 
@@ -351,9 +387,10 @@ URL也可以显示为文件风格，比如在设置：
 
 示例：添加右上角菜单（习惯上左上角为返回按钮，右上角为菜单按钮）
 
+	<!-- btn-icon依次标识左一，右一，左二，右二图标按钮 -->
 	<div class="hd">
-		<a href="javascript:hd_back();" class="icon icon-back"></a>
-		<a href="#dlgMenu" class="icon icon-menu"></a>
+		<a href="javascript:hd_back();" class="btn-icon"><i class="icon icon-back"></i></a>
+		<a href="#dlgMenu" class="btn-icon"><i class="icon icon-menu"></i></a>
 		<h2>谱系图</h2>
 	</div>
 
@@ -427,18 +464,18 @@ URL也可以显示为文件风格，比如在设置：
 			navigator.splashscreen.hide();
 
 @key topic-iosStatusBar
-@see MUI.options.noHandleIosStatusBar
+@see MUI.options.statusBarColor
 
-- ios7以上, 框架自动为顶部状态栏留出20px高度的空间. 默认为白色，可以修改类mui-container的样式，如改为黑色：
+可通过MUI.options.statusBarColor设置状态栏前景和背景色。
 
-	.mui-container {
-		background-color:black;
-	}
+	statusBarColor: "#,light" // 默认，背景与MUI.container（即.mui-container类）背景一致，白字。
+	statusBarColor: "#000000,light" // 黑底白字。
+	statusBarColor: "#ffffff,dark" // 白底黑字
+	statusBarColor: "none" // 不显示状态栏。
 
-如果使用了StatusBar插件, 可以取消该行为. 
-先设置选项：
+如果希望自行设置状态栏，可以设置statusBarColor为null:
 
-	MUI.options.noHandleIosStatusBar = true; // 可以放在H5应用的主js文件中，如index.js
+	MUI.options.statusBarColor = null;
 
 然后在deviceready事件中自行设置样式, 如
 

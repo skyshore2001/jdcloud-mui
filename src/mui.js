@@ -89,9 +89,15 @@ window.g_data = {}; // {userInfo, serverRev?, initClient?, testMode?, mockMode?}
 @key MUI.options.homePage?="#home"  首页地址
 @key MUI.options.pageFolder?="page" 逻辑页面文件(html及js)所在文件夹
 
-@key MUI.options.noHandleIosStatusBar?=false
-
+@key MUI.options.statusBarColor?="#,light" 设置状态栏颜色，默认为应用程序背景色和白字。
 @see topic-iosStatusBar
+（版本v5.0）
+
+利用statusbar插件设置标题栏。
+其中背景设置使用"#000"或"#000000"这种形式，特别地，只用"#"可表示使用当前应用程序的背景色（.mui-container背景颜色）。
+前景设置使用"light"(白色)或"dark"(黑色)。
+设置为"none"表示隐藏标题栏。
+设置为空("")表示禁止框架设置状态栏。
 
 @key MUI.options.manualSplash?=false
 @see topic-splashScreen
@@ -149,6 +155,10 @@ window.g_data = {}; // {userInfo, serverRev?, initClient?, testMode?, mockMode?}
 	<base href="./" mui-showHash="no">
 
 在showHash=false时，必须设置base标签, 否则逻辑页将无法加载。
+
+@var MUI.options.disableFastClick?=false
+
+在IOS+cordova环境下，点击事件会有300ms延迟，默认会加载lib/fastclick.min.js解决。
 */
 	var m_opt = self.options = {
 		appName: "user",
@@ -164,6 +174,7 @@ window.g_data = {}; // {userInfo, serverRev?, initClient?, testMode?, mockMode?}
 
 		pluginFolder: "../plugin",
 		showHash: ($("base").attr("mui-showHash") != "no"),
+		statusBarColor: "#,light"
 	};
 
 	var m_onLoginOK;
@@ -184,21 +195,6 @@ function document_pageCreate(ev)
 }
 
 $(document).on("pagecreate", document_pageCreate);
-
-// ---- 处理ios7以上标题栏问题(应下移以空出状态栏)
-// 需要定义css: #ios7statusbar
-function handleIos7Statusbar()
-{
-	if(g_cordova){
-		var ms = navigator.userAgent.match(/(iPad.*|iPhone.*|iPod.*);.*CPU.*OS (\d+)_\d/i);
-		if(ms) {
-			var ver = ms[2];
-			if (ver >= 7) {
-				self.container.css("margin-top", "20px");
-			}
-		}	
-	}
-}
 
 /**
 @fn MUI.setFormSubmit(jf, fn?, opt?={validate?, onNoAction?})
@@ -291,6 +287,37 @@ $(document).on("deviceready", function () {
 				navigator.splashscreen.hide();
 			}, 500);
 		});
+	}
+
+	if (m_opt.statusBarColor && window.StatusBar) {
+		var bar = window.StatusBar;
+		var str = m_opt.statusBarColor;
+		if (str == "none") {
+			bar.hide();
+		}
+		else {
+			var ms = str.match(/(#\w*)/);
+			if (ms) {
+				var color = ms[1];
+				if (color == '#')
+					color = mCommon.rgb2hex( $(".mui-container").css("backgroundColor") );
+				bar.backgroundColorByHexString(color);
+			}
+			ms = str.match(/\b(dark|light)\b/);
+			if (ms) {
+				if (ms[1] == 'dark')
+					bar.styleDefault();
+				else
+					bar.styleLightContent();
+			}
+		}
+		if (mCommon.isIOS()) {
+			// bugfix: IOS上显示statusbar时可能窗口大小不正确
+			bar.overlaysWebView(false);
+			setTimeout(function () {
+				$(window).trigger("resize");
+			});
+		}
 	}
 });
 
@@ -441,6 +468,13 @@ function parseArgs()
 				var path = './';
 				if (mCommon.isIOS()) {
 					mCommon.loadScript(path + "cordova-ios/cordova.js?__HASH__,.."); 
+
+					if (! m_opt.disableFastClick) {
+						// introduce fastclick for IOS webview: https://github.com/ftlabs/fastclick
+						mCommon.loadScript(path + "lib/fastclick.min.js").then(function () {
+							Origami.fastclick(document.body);
+						});
+					}
 				}
 				else {
 					mCommon.loadScript(path + "cordova/cordova.js?__HASH__,.."); 
@@ -671,9 +705,6 @@ function main()
 		jc.addClass("mui-weixin");
 	}
 	console.log(jc.attr("class"));
-
-	if (! m_opt.noHandleIosStatusBar)
-		handleIos7Statusbar();
 }
 
 $(main);
@@ -771,7 +802,7 @@ function formatField(obj)
 一般用于顶部返回按钮：
 
 	<div class="hd">
-		<a href="javascript:hd_back();" class="icon icon-back"></a>
+		<a href="javascript:hd_back();" class="btn-icon"><i class="icon icon-back"></i></a>
 		<h2>个人信息</h2>
 	</div>
 
