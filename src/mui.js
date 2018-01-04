@@ -81,15 +81,15 @@ window.g_data = {}; // {userInfo, serverRev?, initClient?, testMode?, mockMode?}
 
 可用的选项如下。
 
-@key MUI.options.appName?=user  应用名称
+@var options.appName?=user  应用名称
 
 用于与后端通讯时标识app.
 
-@key MUI.options.loginPage?="#login"  login逻辑页面的地址
-@key MUI.options.homePage?="#home"  首页地址
-@key MUI.options.pageFolder?="page" 逻辑页面文件(html及js)所在文件夹
+@var options.loginPage?="#login"  login逻辑页面的地址
+@var options.homePage?="#home"  首页地址
+@var options.pageFolder?="page" 逻辑页面文件(html及js)所在文件夹
 
-@key MUI.options.statusBarColor?="#,light" 设置状态栏颜色，默认为应用程序背景色和白字。
+@var options.statusBarColor?="#,light" 设置状态栏颜色，默认为应用程序背景色和白字。
 @see topic-iosStatusBar
 （版本v5.0）
 
@@ -99,7 +99,7 @@ window.g_data = {}; // {userInfo, serverRev?, initClient?, testMode?, mockMode?}
 设置为"none"表示隐藏标题栏。
 设置为空("")表示禁止框架设置状态栏。
 
-@key MUI.options.manualSplash?=false
+@var options.manualSplash?=false
 @see topic-splashScreen
 
 @var options.logAction?=false  Boolean. 是否显示详细日志。
