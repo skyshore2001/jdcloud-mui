@@ -77,7 +77,7 @@ window.g_data = {}; // {userInfo, serverRev?, initClient?, testMode?, mockMode?}
 //}}}
 
 /**
-@var MUI.options
+@var options
 
 可用的选项如下。
 
@@ -102,17 +102,17 @@ window.g_data = {}; // {userInfo, serverRev?, initClient?, testMode?, mockMode?}
 @key MUI.options.manualSplash?=false
 @see topic-splashScreen
 
-@var MUI.options.logAction?=false  Boolean. 是否显示详细日志。
+@var options.logAction?=false  Boolean. 是否显示详细日志。
 可用于交互调用的监控。
 
-@var MUI.options.PAGE_SZ?=20  分页大小，下拉列表每次取数据的缺省条数。
+@var options.PAGE_SZ?=20  分页大小，下拉列表每次取数据的缺省条数。
 
-@var MUI.options.mockDelay?=50  模拟调用后端接口的延迟时间，单位：毫秒。仅对异步调用有效。
+@var options.mockDelay?=50  模拟调用后端接口的延迟时间，单位：毫秒。仅对异步调用有效。
 
-@see MUI.mockData 模拟调用后端接口
+@see mockData 模拟调用后端接口
 
-@var MUI.options.serverUrl?="./"  服务端接口地址设置。
-@var MUI.options.serverUrlAc  表示接口名称的URL参数。
+@var options.serverUrl?="./"  服务端接口地址设置。
+@var options.serverUrlAc  表示接口名称的URL参数。
 
 示例：
 
@@ -140,11 +140,11 @@ window.g_data = {}; // {userInfo, serverRev?, initClient?, testMode?, mockMode?}
 
 	http://myserver/myapp/getuser?id=10
 
-@var MUI.options.pluginFolder?="../plugin" 指定筋斗云插件目录
+@var options.pluginFolder?="../plugin" 指定筋斗云插件目录
 
 筋斗云插件提供具有独立接口的应用功能模块，包括前端、后端实现。
 
-@var MUI.options.showHash?=true
+@var options.showHash?=true
 
 默认访问逻辑页面时，URL地址栏显示为: "index.html#me"
 
@@ -156,7 +156,7 @@ window.g_data = {}; // {userInfo, serverRev?, initClient?, testMode?, mockMode?}
 
 在showHash=false时，必须设置base标签, 否则逻辑页将无法加载。
 
-@var MUI.options.disableFastClick?=false
+@var options.disableFastClick?=false
 
 在IOS+cordova环境下，点击事件会有300ms延迟，默认会加载lib/fastclick.min.js解决。
 */
@@ -197,7 +197,7 @@ function document_pageCreate(ev)
 $(document).on("pagecreate", document_pageCreate);
 
 /**
-@fn MUI.setFormSubmit(jf, fn?, opt?={validate?, onNoAction?})
+@fn setFormSubmit(jf, fn?, opt?={validate?, onNoAction?})
 
 @param fn Function(data); 与callSvr时的回调相同，data为服务器返回的数据。
 函数中可以使用this["userPost"] 来获取post参数。
@@ -360,7 +360,7 @@ function getPageRef(page)
 }
 
 /**
-@fn MUI.showLogin(page?)
+@fn showLogin(page?)
 @param page=pageRef/jpage 如果指定, 则登录成功后转向该页面; 否则转向登录前所在的页面.
 
 显示登录页. 注意: 登录页地址通过MUI.options.loginPage指定, 缺省为"#login".
@@ -389,7 +389,7 @@ function showLogin(page)
 }
 
 /**
-@fn MUI.showHome()
+@fn showHome()
 
 显示主页。主页是通过 MUI.options.homePage 来指定的，默认为"#home".
 
@@ -397,7 +397,7 @@ function showLogin(page)
 
 	var jpage = $(MUI.options.homePage);
 
-@see MUI.options.homePage
+@see options.homePage
 */
 self.showHome = showHome;
 function showHome()
@@ -406,7 +406,7 @@ function showHome()
 }
 
 /**
-@fn MUI.logout(dontReload?)
+@fn logout(dontReload?)
 @param dontReload 如果非0, 则注销后不刷新页面.
 
 注销当前登录, 成功后刷新页面(除非指定dontReload=1)
@@ -423,7 +423,7 @@ function logout(dontReload)
 }
 
 /**
-@fn MUI.validateEntry(@allowedEntries) 入口页检查
+@fn validateEntry(@allowedEntries) 入口页检查
 
 设置入口页，allowedEntries是一个数组, 如果初始页面不在该数组中, 则URL中输入该逻辑页时，会自动转向主页。
 
@@ -513,7 +513,7 @@ function deleteLoginToken()
 }
 
 /**
-@fn MUI.tryAutoLogin(onHandleLogin, reuseCmd?, allowNoLogin?=false)
+@fn tryAutoLogin(onHandleLogin, reuseCmd?, allowNoLogin?=false)
 
 尝试自动登录，如果失败则转到登录页（除非allowNoLogin=true）。
 
@@ -583,7 +583,7 @@ function tryAutoLogin(onHandleLogin, reuseCmd, allowNoLogin)
 }
 
 /**
-@fn MUI.handleLogin(data)
+@fn handleLogin(data)
 @param data 调用API "login"成功后的返回数据.
 
 处理login相关的操作, 如设置g_data.userInfo, 保存自动登录的token等等.
@@ -618,7 +618,7 @@ function handleLogin(data)
 
 // ------ plugins {{{
 /**
-@fn MUI.initClient(param?)
+@fn initClient(param?)
 */
 self.initClient = initClient;
 var plugins_ = {};
@@ -768,7 +768,7 @@ function filterCordovaModule(module)
 }
 
 /**
-@fn MUI.formatField(obj) -> obj
+@fn formatField(obj) -> obj
 
 对obj中的以字符串表示的currency/date等类型进行转换。
 判断类型的依据是属性名字，如以Tm结尾的属性（也允许带数字后缀）为日期属性，如"tm", "tm2", "createTm"都会被当作日期类型转换。
@@ -828,7 +828,7 @@ function hd_back(pageRef)
 }
 
 /**
-@fn MUI.syslog(module, pri, content)
+@fn syslog(module, pri, content)
 
 向后端发送日志。后台必须已添加syslog插件。
 日志可在后台Syslog表中查看，客户端信息可查看ApiLog表。

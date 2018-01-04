@@ -20,7 +20,7 @@ var self = this;
 var mCommon = jdModule("jdcloud.common");
 	
 /**
-@var MUI.activePage
+@var activePage
 
 当前页面。
 
@@ -32,21 +32,21 @@ var mCommon = jdModule("jdcloud.common");
 要查看从哪个页面来，可以用 MUI.prevPageId。
 要查看最近一次调用MUI.showPage转向的页面，可以用 MUI.getToPageId().
 
-@see MUI.prevPageId
-@see MUI.getToPageId()
+@see prevPageId
+@see getToPageId()
 
 */
 self.activePage = null;
 
 /**
-@var MUI.prevPageId
+@var prevPageId
 
 上一个页面的id, 首次进入时为空.
 */
 self.prevPageId = null;
 
 /**
-@var MUI.container
+@var container
 
 应用容器，一般就是`$(document.body)`
 
@@ -55,7 +55,7 @@ self.prevPageId = null;
 self.container = null;
 
 /**
-@var MUI.showFirstPage?=true
+@var showFirstPage?=true
 
 如果为false, 则必须手工执行 MUI.showPage 来显示第一个页面。
 */
@@ -245,7 +245,7 @@ m_curState==null: 首次进入，或hash改变
 }
 
 /**
-@fn MUI.setUrl(url)
+@fn setUrl(url)
 
 设置当前地址栏显示的URL. 如果url中不带hash部分，会自动加上当前的hash.
 
@@ -330,7 +330,7 @@ function setUrl(url)
 }
 
 /**
-@fn MUI.deleteUrlParam(param)
+@fn deleteUrlParam(param)
 
 自动修改g_args全局变量和当前url（会调用MUI.setUrl方法）。
 
@@ -348,14 +348,14 @@ function deleteUrlParam(param)
 }
 
 /**
-@fn MUI.setUrlParam(param, val)
+@fn setUrlParam(param, val)
 
 修改当前url，添加指定参数。
 e.g. 
 
 	MUI.setUrlParam("wxauth", 1);
 
-@see MUI.deleteUrlParam,MUI.appendParam
+@see deleteUrlParam,MUI.appendParam
  */
 self.setUrlParam = setUrlParam;
 function setUrlParam(param, val)
@@ -490,7 +490,7 @@ function getPageInfo(pageRef)
 }
 
 /**
-@fn MUI.showPage(pageRef, opt)
+@fn showPage(pageRef, opt)
 
 @param pageId String. 页面名字. 仅由字母、数字、"_"等字符组成。
 @param pageRef String. 页面引用（即location.hash），以"#"开头，后面可以是一个pageId（如"#home"）或一个相对页的地址（如"#info.html", "#emp/info.html"）。
@@ -499,7 +499,7 @@ function getPageInfo(pageRef)
 opt.ani:: String. 动画效果。设置为"none"禁用动画。
 
 opt.url:: String. 指定在地址栏显示的地址。如 `showPage("#order", {url: "?id=100"})` 可设置显示的URL为 `page/order.html?id=100`.
-@see MUI.setUrl
+@see setUrl
 
 在应用内无刷新地显示一个页面。
 
@@ -790,7 +790,7 @@ function showPage(pageRef, opt)
 }
 
 /**
-@fn MUI.setDocTitle(title)
+@fn setDocTitle(title)
 
 设置文档标题。默认在切换页面时，会将文档标题设置为逻辑页的标题(`hd`块中的`h1`或`h2`标签)。
 */
@@ -810,7 +810,7 @@ function setDocTitle(newTitle)
 }
 
 /**
-@fn MUI.unloadPage(pageRef?)
+@fn unloadPage(pageRef?)
 
 @param pageRef 如未指定，表示当前页。
 
@@ -843,7 +843,7 @@ function unloadPage(pageRef)
 }
 
 /**
-@fn MUI.reloadPage(pageRef?, opt?)
+@fn reloadPage(pageRef?, opt?)
 
 @param pageRef 如未指定，表示当前页。
 @param opt 传递给MUI.showPage的opt参数。参考MUI.showPage.
@@ -861,14 +861,14 @@ function reloadPage(pageRef, opt)
 }
 
 /**
-@var MUI.m_pageStack
+@var m_pageStack
 
 页面栈，MUI.popPageStack对它操作
 */
 self.m_pageStack = new PageStack();
 
 /** 
-@fn MUI.popPageStack(n?=1) 
+@fn popPageStack(n?=1) 
 
 n=0: 退到首层, >0: 指定pop几层
 
@@ -932,11 +932,11 @@ function fixPageSize()
 }
 
 /**
-@fn MUI.getToPageId()
+@fn getToPageId()
 
 返回最近一次调用MUI.showPage时转向页面的Id.
 
-@see MUI.prevPageId
+@see prevPageId
  */
 self.getToPageId = getToPageId;
 function getToPageId()
@@ -1057,7 +1057,7 @@ function enhanceDialog(jo)
 }
 
 /**
-@fn MUI.showDialog(jdlg)
+@fn showDialog(jdlg)
 */
 self.showDialog = showDialog;
 function showDialog(jdlg)
@@ -1079,7 +1079,7 @@ function showDialog(jdlg)
 }
 
 /**
-@fn MUI.closeDialog(jdlg, remove=false)
+@fn closeDialog(jdlg, remove=false)
 */
 self.closeDialog = closeDialog;
 function closeDialog(jdlg, remove)
@@ -1092,7 +1092,7 @@ function closeDialog(jdlg, remove)
 }
 
 /**
-@fn MUI.setupDialog(jdlg, initfn)
+@fn setupDialog(jdlg, initfn)
 
 @return 可以不返回, 或返回一个回调函数beforeShow, 在每次Dialog显示前调用.
 
@@ -1124,9 +1124,8 @@ function setupDialog(jdlg, initfn)
 }
 
 /**
-@fn MUI.app_alert(msg, [type?=i], [fn?], opt?={timeoutInterval?, defValue?, onCancel()?})
-@alias app_alert
-@alias #muiAlert
+@fn app_alert(msg, [type?=i], [fn?], opt?={timeoutInterval?, defValue?, onCancel()?})
+@key #muiAlert
 @param type 对话框类型: "i": info, 信息提示框; "e": error, 错误框; "w": warning, 警告框; "q": question, 确认框(会有"确定"和"取消"两个按钮); "p": prompt, 输入框
 @param fn Function(text?) 回调函数，当点击确定按钮时调用。当type="p" (prompt)时参数text为用户输入的内容。
 @param opt Object. 可选项。 timeoutInterval表示几秒后自动关闭对话框。defValue用于输入框(type=p)的缺省值.
@@ -1297,7 +1296,7 @@ function app_alert_keydown(ev)
 }
 
 /**
-@fn MUI.showLoading()
+@fn showLoading()
 */
 self.showLoading = showLoading;
 function showLoading()
@@ -1309,7 +1308,7 @@ function showLoading()
 }
 	
 /**
-@fn MUI.hideLoading()
+@fn hideLoading()
 */
 self.hideLoading = hideLoading;
 function hideLoading()

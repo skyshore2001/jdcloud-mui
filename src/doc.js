@@ -13,8 +13,8 @@
   访问任何页面都是index.html#page1的方式，如果page1已存在则使用（内部页面），不存在则动态加载（如找到fragment/page1.html）
 - 页面栈管理。可自行pop掉一些页面控制返回行为。
 
-@see MUI.showPage
-@see MUI.popPageStack
+@see showPage
+@see popPageStack
 
 ### 应用容器
 
@@ -298,10 +298,10 @@ URL也可以显示为文件风格，比如在设置：
 	<base href="./" mui-showHash="no">
 
 之后，上面两个例子中，URL会显示为 `http://server/app/page/order.html` 和 `http://server/app/page/order/list.html`
-@see MUI.options.showHash
+@see options.showHash
 
 特别地，还可以通过`MUI.setUrl(url)`或`MUI.showPage(pageRef, {url: url})`来定制URL，例如将订单id=100的逻辑页显示为RESTful风格：`http://server/app/order/100`
-@see MUI.setUrl
+@see setUrl
 
 为了刷新时仍能正常显示页面，应将页面设置为入口页，并在WEB服务器配置好URL重写规则。
 
@@ -316,10 +316,10 @@ URL也可以显示为文件风格，比如在设置：
 
 登录后显示的主页，登录页，应用名称等应通过MUI.options.homePage/loginPage/appName等选项设置。
 
-@see MUI.tryAutoLogin
-@see MUI.showLogin
-@see MUI.logout
-@see MUI.options
+@see tryAutoLogin
+@see showLogin
+@see logout
+@see options
 
 ## 常用组件
 
@@ -375,7 +375,7 @@ URL也可以显示为文件风格，比如在设置：
 
 	<a href="#dlgAddPerson">添加人物</a>
 
-@see MUI.showDialog 弹出对话框
+@see showDialog 弹出对话框
 @see #muiAlert,MUI.app_alert 提示框(app_alert)是一个id为`muiAlert`的特别对话框。
 @see .mui-menu 弹出菜单，也是一类特别的对话框。
 
@@ -452,7 +452,7 @@ URL也可以显示为文件风格，比如在设置：
 对原生应用的额外增强包括：
 
 @key topic-splashScreen
-@see MUI.options.manualSplash
+@see options.manualSplash
 
 - 应用加载完成后，自动隐藏启动画面(SplashScreen)。如果需要自行隐藏启动画面，可以设置
 
@@ -464,7 +464,7 @@ URL也可以显示为文件风格，比如在设置：
 			navigator.splashscreen.hide();
 
 @key topic-iosStatusBar
-@see MUI.options.statusBarColor
+@see options.statusBarColor
 
 可通过MUI.options.statusBarColor设置状态栏前景和背景色。
 
