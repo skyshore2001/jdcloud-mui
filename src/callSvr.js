@@ -399,6 +399,8 @@ function makeUrl(action, params)
 	if (action.makeUrl || /^http/.test(action)) {
 		if (params == null)
 			return action;
+		if (action.makeUrl)
+			return makeUrl(action.action, $.extend({}, action.params, params));
 		var url = mCommon.appendParam(action, $.param(params));
 		return makeUrlObj(url);
 	}
@@ -1106,6 +1108,10 @@ batchCall.prototype = {
 		if (opt.ref) {
 			call.ref = opt.ref;
 		}
+		if (call.ac && call.ac.makeUrl) {
+			call.get = $.extend({}, call.ac.params, call.get);
+			call.ac = call.ac.action;
+		}
 		this.calls_.push(call);
 
 		var callOpt = {
@@ -1126,8 +1132,19 @@ batchCall.prototype = {
 			return;
 		m_curBatch = null;
 
-		if (this.calls_.length <= 1) {
+		if (this.calls_.length < 1) {
 			console.log("!!! warning: batch has " + this.calls_.length + " calls!");
+			return;
+		}
+		if (this.calls_.length == 1) {
+			// 只有一个调用，不使用batch
+			var call = this.calls_[0];
+			var callOpt = this.callOpts_[0];
+			var dfd = callSvr(call.ac, call.get, callOpt.fn, call.post, callOpt.opt);
+			dfd.then(function (data) {
+				callOpt.dfd.resolve(data);
+			});
+			return;
 		}
 		var batch_ = this;
 		var postData = JSON.stringify(this.calls_);

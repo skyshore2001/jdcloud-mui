@@ -552,4 +552,33 @@ APP初始化成功后，回调该事件。如果deviceready事件未被回调，
 		});
 
 这时直接在chrome中打开html文件即可连接远程接口运行起来.
+
+## 参考文档说明
+
+以下参考文档介绍MUI模块提供的方法/函数(fn)、属性/变量(var)等，示例如下：
+
+	@fn showPage(pageName, title?, paramArr?)  一个函数。参数说明中问号表示参数可缺省。
+	@var options 一个属性。
+	@class batchCall(opt?={useTrans?=0}) 一个JS类。
+	@key topic-splashScreen key表示一般关键字。前缀为"topic-"用于某专题
+	@key .wui-page 一个CSS类名"wui-page"，关键字以"."开头。
+	@key #wui-pages 一个DOM对象，id为"wui-pages"，关键字以"#"开头。
+
+对于模块下的fn,var,class这些类别，如非特别说明，调用时应加MUI前缀，如
+
+	MUI.showPage("#order");
+	var opts = MUI.options;
+	var batch = new MUI.batchCall();
+	batch.commit();
+
+以下函数可不加MUI前缀：
+
+	intSort
+	numberSort
+	callSvr
+	callSvrSync
+	app_alert
+
+参考mui-name.js模块。
+
  */
