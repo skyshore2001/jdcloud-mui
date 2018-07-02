@@ -337,6 +337,7 @@ function isLoginPage(pageRef)
 }
 
 // page: pageRef/jpage/null
+// return: page对应的pageRef, null表示home页面, 
 function getPageRef(page)
 {
 	var pageRef = page;
@@ -347,14 +348,14 @@ function getPageRef(page)
 		else {
 			// only before jquery mobile inits
 			// back to this page after login:
-			pageRef = location.hash || m_opt.homePage;
+			pageRef = location.hash || null;
 		}
 	}
 	else if (page instanceof jQuery) {
 		pageRef = "#" + page.attr("id");
 	}
 	else if (page === "#" || page === "") {
-		pageRef = m_opt.homePage;
+		pageRef = null;
 	}
 	return pageRef;
 }
@@ -382,8 +383,11 @@ function showLogin(page)
 	var pageRef = getPageRef(page);
 	m_onLoginOK = function () {
 		// 如果当前仍在login系列页面上，则跳到指定页面。这样可以在handleLogin中用MUI.showPage手工指定跳转页面。
-		if (MUI.activePage && isLoginPage(MUI.getToPageId()))
+		if (MUI.activePage && isLoginPage(MUI.getToPageId())) {
+			if (pageRef == null)
+				pageRef = m_opt.homePage;
 			MUI.showPage(pageRef);
+		}
 	}
 	MUI.showPage(m_opt.loginPage);
 }
@@ -567,7 +571,7 @@ function tryAutoLogin(onHandleLogin, reuseCmd, allowNoLogin)
 	var token = loadLoginToken();
 	if (token != null)
 	{
-		var param = {wantAll:1};
+		var param = {};
 		var postData = {token: token};
 		self.callSvr("login", param, handleAutoLogin, postData, ajaxOpt);
 	}
@@ -587,6 +591,15 @@ function tryAutoLogin(onHandleLogin, reuseCmd, allowNoLogin)
 @param data 调用API "login"成功后的返回数据.
 
 处理login相关的操作, 如设置g_data.userInfo, 保存自动登录的token等等.
+可以根据用户属性在此处定制home页，例如：
+
+	if(role == "SA"){
+		MUI.options.homePage: "#sa-home";
+	}
+	else if (role == "MA") {
+		MUI.options.homePage: "#ma-home";
+	}
+
 
 */
 self.handleLogin = handleLogin;

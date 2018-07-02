@@ -418,10 +418,13 @@ function initPageStack()
 		return history.go(1);
 	};
 	history.go = function (n) {
-		var n = self.m_pageStack.go(n);
-		if (n == 0)
-			return false;
-		m_isback = n < 0;
+		// history.state.pageRef非空表示是框架做的页面处理。避免与第三方组件调用pushState冲突。
+		if (history.state && history.state.pageRef) {
+			var n = self.m_pageStack.go(n);
+			if (n == 0)
+				return false;
+			m_isback = n < 0;
+		}
 		// history.go原函数
 		return m_fn_history_go.call(this, n);
 	};
@@ -707,11 +710,11 @@ function showPage(pageRef, opt)
 				return;
 			}
 
-			self.enhanceWithin(jpage);
 			var ret = callInitfn(jpage);
 			if (ret instanceof jQuery)
 				jpage = ret;
 			jpage.trigger("pagecreate");
+			self.enhanceWithin(jpage);
 			changePage(jpage);
 			self.leaveWaiting();
 		}
@@ -1010,19 +1013,29 @@ function enhanceFooter(jfooter)
 	enhanceNavbar(jfooter);
 	jfooter.addClass("ft").addClass("mui-navbar");
 	var jnavs = jfooter.find(">a");
-	var id2nav = {};
-	jnavs.each(function(i, e) {
-		var m = e.href.match(/#(\w+)/);
-		if (m) {
-			id2nav[m[1]] = e;
+	var id2nav = null;
+
+	function getNav(pageId) {
+		if (id2nav == null) {
+			id2nav = {};
+			jnavs.each(function(i, e) {
+				if (e.style.display == "none")
+					return;
+				var m = e.href.match(/#([\w-]+)/);
+				if (m) {
+					id2nav[m[1]] = e;
+				}
+			});
 		}
-	});
+		return id2nav[pageId];
+	}
+
 	$(document).on("pagebeforeshow", function (ev) {
 		var jpage = $(ev.target);
 		var pageId = jpage.attr("id");
 		if (m_toPageId != pageId)
 			return;
-		var e = id2nav[pageId];
+		var e = getNav(pageId);
 		if (e === undefined)
 		{
 			if (jfooter.parent()[0] !== m_jstash[0])
