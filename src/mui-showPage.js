@@ -498,7 +498,7 @@ function getPageInfo(pageRef)
 @param pageId String. 页面名字. 仅由字母、数字、"_"等字符组成。
 @param pageRef String. 页面引用（即location.hash），以"#"开头，后面可以是一个pageId（如"#home"）或一个相对页的地址（如"#info.html", "#emp/info.html"）。
   如果未指定，则使用当前URL的hash或指定的主页(MUI.options.homePage). "#"表示主页。
-@param opt {ani?, url?}  (v3.3) 该参数会传递给pagebeforeshow/pageshow回调函数。
+@param opt {ani, url, backNoRefresh}  (v3.3) 该参数会传递给pagebeforeshow/pageshow回调函数。
 
 opt.ani:: String. 动画效果。设置为"none"禁用动画。
 
@@ -569,6 +569,11 @@ opt.url:: String. 指定在地址栏显示的地址。如 `showPage("#order", {u
 			// opt={orderId: 100}
 		});
 	}
+(v5.2)
+@param opt.backNoRefresh ?=false 从新页面返回后，不要刷新当前页
+实际为A->B页面跳转后，此后若有B->A跳转，不触发A页面的pagebeforeshow事件。
+在initPage时，也可直接在页面上设置: `jpage.prop("backNoRefresh", ["page1", "page2"])`, 表示从page1, page2转到当前页面，不触发pagebeforeshow事件。注意，数组中保存的是pageId，不是pageRef.
+
 */
 self.showPage = showPage;
 function showPage(pageRef, opt)
@@ -696,7 +701,12 @@ function showPage(pageRef, opt)
 			// 检测运营商js劫持，并自动恢复。
 			var fname = jpage.attr("mui-initfn");
 			if (fname && window[fname] == null) {
-				// 10s内重试
+				if (location.protocol == "https:") {
+					var err = "逻辑页加载失败: " + jpage.attr("id");
+					self.app_alert(err);
+					return;
+				}
+				// 如果不是https协议，则可能是页面html/js被运营商劫持，在10s内反复重试
 				var failTry_ = jpage.data("failTry_");
 				var dt = new Date();
 				if (failTry_ == null) {
@@ -727,12 +737,28 @@ function showPage(pageRef, opt)
 		if (self.activePage && self.activePage[0] === jpage[0])
 			return;
 
+		var toPageId = jpage.attr("id");
+		var skipBeforeShow = false;
 		var oldPage = self.activePage;
 		if (oldPage) {
 			self.prevPageId = oldPage.attr("id");
+			var backNoRefresh = jpage.prop("backNoRefresh");
+			if ($.isArray(backNoRefresh) && backNoRefresh.indexOf(self.prevPageId) >= 0) {
+				skipBeforeShow = true;
+			}
+			if (showPageOpt_.backNoRefresh) {
+				backNoRefresh = oldPage.prop("backNoRefresh");
+				if (! $.isArray(backNoRefresh)) {
+					backNoRefresh = [];
+					oldPage.prop("backNoRefresh", backNoRefresh);
+				}
+				if (backNoRefresh.indexOf(toPageId) < 0)
+					backNoRefresh.push(toPageId);
+			}
 		}
-		var toPageId = jpage.attr("id");
-		jpage.trigger("pagebeforeshow", [showPageOpt_]);
+
+		if (!skipBeforeShow)
+			jpage.trigger("pagebeforeshow", [showPageOpt_]);
 		// 如果在pagebeforeshow中调用showPage显示其它页，则不显示当前页，避免页面闪烁。
 		if (toPageId != m_toPageId)
 		{
@@ -1140,13 +1166,13 @@ function setupDialog(jdlg, initfn)
 }
 
 /**
-@fn app_alert(msg, [type?=i], [fn?], opt?={timeoutInterval?, defValue?, onCancel()?})
+@fn app_alert(msg, [type?=i], [fn?], opt?={timeoutInterval, defValue, onCancel(), keep})
 @key #muiAlert
 @param type 对话框类型: "i": info, 信息提示框; "e": error, 错误框; "w": warning, 警告框; "q": question, 确认框(会有"确定"和"取消"两个按钮); "p": prompt, 输入框
 @param fn Function(text?) 回调函数，当点击确定按钮时调用。当type="p" (prompt)时参数text为用户输入的内容。
 @param opt Object. 可选项。 timeoutInterval表示几秒后自动关闭对话框。defValue用于输入框(type=p)的缺省值.
 
-onCancel: 用于"q", 点取消时回调.
+opt.onCancel: 用于"q", 点取消时回调.
 
 示例:
 
@@ -1188,6 +1214,14 @@ onCancel: 用于"q", 点取消时回调.
 	</div>
 
 app_alert一般会复用对话框 muiAlert, 除非层叠开多个alert, 这时将clone一份用于显示并在关闭后删除。
+
+(v5.2)
+@param opt.keep?=false 如果设置为true，则如果已经有弹出框，重用这个框而非重新弹出一个新框。
+常用于显示进度，如：
+
+	app_alert("正在处理: 0/1...");
+	app_alert("正在处理: 1/1...", {keep:true});
+	app_alert("处理完成!", {keep:true});
 
 */
 window.app_alert = self.app_alert = app_alert;
@@ -1233,7 +1267,7 @@ function app_alert(msg)
 
 	var isClone = false;
 	// 如果正在显示，则使用clone
-	if (jdlg.parent().is(":visible")) {
+	if (jdlg.parent().is(":visible") && !alertOpt.keep) {
 		var jo = jdlg.parent().clone().appendTo(self.container);
 		jdlg = jo.find(".mui-dialog");
 		isClone = true;

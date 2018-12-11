@@ -527,12 +527,26 @@ APP初始化成功后，回调该事件。如果deviceready事件未被回调，
 - 左划：页面前进
 
 @key mui-swipenav DOM属性
-如果页面中某组件上的左右划与该功能冲突，可以设置属性mui-swipenav="no"来禁用该功能：
+如果页面中某组件上的左右划与该功能冲突，可以设置属性mui-swipenav="no"来禁用页面前进后退功能，以确保组件自身的左右划功能正常：
 
-	<div mui-swipenav="no"></div>
+	<div id="div1" mui-swipenav="no"></div>
+
+	jpage.find("#div1").swipe({
+		swipeLeft: swipeH,
+		swipeRight: swipeH
+	});
+
+	function swipeH(ev, direction, distance, duration, fingerCnt, fingerData, currentDirection) {
+		if (direction == 'left') {
+			console.log("next");
+		}
+		else if (direction == 'right') {
+			console.log("prev");
+		}
+	}
 
 @key .noSwipe CSS-class
-左右划前进后退功能会导致横向滚动生效。可以通过添加noSwipe类（注意大小写）的方式禁用swipe事件恢复滚动功能：
+左右划前进后退功能会导致横向滚动失效。可以通过添加noSwipe类（注意大小写）的方式禁用swipe事件恢复滚动功能：
 
 	<div class="noSwipe"></div>
 
