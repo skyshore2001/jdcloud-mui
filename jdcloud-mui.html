@@ -33,7 +33,7 @@ code {
 </head>
 
 <h1>MUI</h1>
-<div>最后更新：2018-12-30</div>
+<div>最后更新：2019-03-15</div>
 <h2>Modules</h2>
 <div class="toc">
 <p><a href="#MUI">MUI (module)</a></p>
@@ -111,6 +111,7 @@ code {
 <p><a href="#formatField">formatField (fn)</a></p>
 <p><a href="#g_args">g_args (var)</a></p>
 <p><a href="#g_args._app">g_args._app (var)</a></p>
+<p><a href="#g_args.enableSwitchApp">g_args.enableSwitchApp (key)</a></p>
 <p><a href="#g_cordova">g_cordova (var)</a></p>
 <p><a href="#g_data">g_data (var)</a></p>
 <p><a href="#g_data.initClient">g_data.initClient (key)</a></p>
@@ -164,12 +165,15 @@ code {
 <p><a href="#mui-script">mui-script (key)</a></p>
 <p><a href="#mui-swipenav">mui-swipenav (key)</a></p>
 <p><a href="#muiInit">muiInit (event)</a></p>
+<p><a href="#nextShowPageOpt">nextShowPageOpt (var)</a></p>
 <p><a href="#numberSort">numberSort (fn)</a></p>
 <p><a href="#objarr2list">objarr2list (fn)</a></p>
 <p><a href="#options">options (var)</a></p>
 <p><a href="#options.PAGE_SZ">options.PAGE_SZ (var)</a></p>
 <p><a href="#options.appName">options.appName (var)</a></p>
 <p><a href="#options.disableFastClick">options.disableFastClick (var)</a></p>
+<p><a href="#options.enableSwitchApp">options.enableSwitchApp (var)</a></p>
+<p><a href="#options.enableWxLogin">options.enableWxLogin (var)</a></p>
 <p><a href="#options.homePage">options.homePage (var)</a></p>
 <p><a href="#options.logAction">options.logAction (var)</a></p>
 <p><a href="#options.loginPage">options.loginPage (var)</a></p>
@@ -305,6 +309,10 @@ code {
     this is the footer
     &lt;/div&gt;
 &lt;/div&gt;</code></pre>
+<p>(v5.2)<br />
+hd和ft可以有多个, bd只能有一个。框架将自动为它们计算和设置位置。<br />
+hd一般用于显示页面标题、返回和菜单。在hd中出现的第一个h1或h2标签的文字将自动设置为当前文档标题。<br />
+在微信中（如公众号或小程序），第一个hd会自动隐藏，以避免与微信的标题栏重复。</p>
 <p>app.css中定义了<code>btn-icon</code>为顶栏图标按钮类，如果在<code>hd</code>中有多个<code>btn-icon</code>，则依次为左一，右一，左二，右二按钮，例如：</p>
 <pre><code>&lt;div class="hd"&gt;
     &lt;!-- 左一: 返回按钮 --&gt;
@@ -527,19 +535,19 @@ function loadStatLib()
 
     &lt;div class="bd weui-cells"&gt;
         &lt;div class="weui-cell weui-cell_access"&gt;
-            &lt;label class="weui-cell_hd weui-label" style="min-width:7em"&gt;为&lt;span class="p-name"&gt;&lt;/span&gt;添加:&lt;/label&gt;
+            &lt;label class="weui-cell_hd weui-label"&gt;添加:&lt;/label&gt;
             &lt;select id="cboRelation" class="weui-cell__bd weui-select right" style="min-width:90px"&gt;
                 &lt;option value="parent"&gt;父亲&lt;/option&gt;
                 &lt;option value="child"&gt;子女&lt;/option&gt;
             &lt;/select&gt;
             &lt;div class="weui-cell__ft"&gt;&lt;/div&gt;
         &lt;/div&gt;
-        &lt;div class="weui-cell nowrap" style="display:block;"&gt;
-            &lt;a id="btnOK" class="mui-btn primary"&gt;确定&lt;/a&gt;
-            &lt;a id="btnCancel" class="mui-btn"&gt;取消&lt;/a&gt;
-        &lt;/div&gt;
     &lt;/div&gt;
 
+    &lt;div class="ft"&gt;
+        &lt;a id="btnCancel" class="mui-btn"&gt;取消&lt;/a&gt;
+        &lt;a id="btnOK" class="mui-btn primary"&gt;确定&lt;/a&gt;
+    &lt;/div&gt;
 &lt;/div&gt;</code></pre>
 <p>要弹出这个对话框：</p>
 <pre><code>MUI.showDialog(jpage.find("#dlgAddPerson"));</code></pre>
@@ -1046,9 +1054,10 @@ var arr = mCommon.rs2Array(rs);</code></pre>
 对div等其它对象, 会清空该对象的内容.</li>
 <li>如果对象设置有属性&quot;noReset&quot;, 则不会对它进行设置.</li>
 </ul>
-<p class="param"><strong>@param opt</strong>  {setOrigin?=false}</p>
-<p>选项 setOrigin: 为true时将data设置为数据源, 这样在getFormData时, 只会返回与数据源相比有变化的数据.<br />
-缺省会设置该DOM对象数据源为空.</p>
+<p class="param"><strong>@param opt</strong>  {setOrigin?=false, setOnlyDefined?=false}</p>
+<p class="param"><strong>@param opt.setOrigin</strong>  为true时将data设置为数据源, 这样在getFormData时, 只会返回与数据源相比有变化的数据.</p>
+<p>缺省会设置该DOM对象数据源为空.</p>
+<p class="param"><strong>@param opt.setOnlyDefined</strong>  设置为true时，只设置form中name在data中存在的项，其它项保持不变；而默认是其它项会清空。</p>
 <p>对象关联的数据源, 可以通过 jo.data(&quot;origin<em>&quot;) 来获取, 或通过 jo.data(&quot;origin</em>&quot;, newOrigin) 来设置.</p>
 <p>示例：</p>
 <pre><code>&lt;div id="div1"&gt;
@@ -1785,6 +1794,13 @@ callSvr("User.get", {res: "id,phone"}, api_UserGet);</code></pre>
 <p class="see"><strong>@see <a href="#.mui-container">.mui-container</a></strong> </p><hr>
 <h2 id="showFirstPage">@var showFirstPage?=true</h2>
 <p>如果为false, 则必须手工执行 MUI.showPage 来显示第一个页面。</p><hr>
+<h2 id="nextShowPageOpt">@var nextShowPageOpt</h2>
+<p>如果指定, 则在下次showPage时生效.<br />
+初次进入App时无动画效果.</p>
+<p>示例: 在返回在指定不要动画效果:</p>
+<pre><code>MUI.nextShowPageOpt = {ani: 'none'};
+history.back();</code></pre>
+<p>因为未直接调用MUI.showPage, 可以用nextShowPageOpt来传递参数. 此参数用后即焚.</p><hr>
 <h2 id="setUrl">@fn setUrl(url)</h2>
 <p>设置当前地址栏显示的URL. 如果url中不带hash部分，会自动加上当前的hash.</p>
 <pre><code>MUI.setUrl("page/home.html"); // 设置url
@@ -2110,7 +2126,24 @@ function onAutoLogin()
     location.href = "../weixin/auth.php?" + $.param(param);
     // 修改了URL后直接跳出即可。不用返回true
     MUI.app_abort();
-}</code></pre><hr>
+}</code></pre>
+<p class="var"><strong>@var <a id="options.enableWxLogin">options.enableWxLogin</a></strong>  微信认证登录</p>
+<p>设置enableWxLogin为true，或者appName为&quot;user&quot;，则如果URL中有参数wxCode, 就调用后端&quot;login2(wxCode)&quot;接口登录认证。<br />
+一般用于从微信小程序调用H5应用。<br />
+要求后端已实现login2接口。</p>
+<pre><code>$.extend(MUI.options, {
+    ...
+    enableWxLogin: true
+});</code></pre>
+<p class="var"><strong>@var <a id="options.enableSwitchApp">options.enableSwitchApp</a></strong>  自动保存和切换应用</p>
+<p class="key"><strong>@key <a id="g_args.enableSwitchApp">g_args.enableSwitchApp</a></strong>  =1 应用自动切换</p>
+<p>同一个目录下的多个应用，支持自动切换。<br />
+例如原生APP（或微信小程序中）的URL为用户端，但在登录页或个人中心页可切换到员工端。<br />
+当进入员工端并登录成功后，希望下次打开APP后直接进入员工端，做法如下：</p>
+<p>在H5应用中设置选项options.enableSwitchApp=true。(例如在app.js中设置，这样所有应用都允许跳转）<br />
+应用登录后将自动记录当前URL。</p>
+<p>在APP中初次打开H5应用(history.length&lt;=1)时，会在进入应用后自动检查和切换应用（将在MUI.validateEntry函数中检查，一般H5应用的主JS文件入口处默认会调用它）。<br />
+最好在URL中添加参数enableSwitchApp=1强制检查，例如在chrome中初次打开页面history.length为2，不加参数就无法自动切换H5应用。</p><hr>
 <h2 id="setFormSubmit">@fn setFormSubmit(jf, fn?, opt?={validate?, onNoAction?})</h2>
 <p class="param"><strong>@param fn</strong>  Function(data); 与callSvr时的回调相同，data为服务器返回的数据。</p>
 <p>函数中可以使用this[&quot;userPost&quot;] 来获取post参数。</p>
@@ -2193,10 +2226,10 @@ function handleLogin(data)
 <p>处理login相关的操作, 如设置g_data.userInfo, 保存自动登录的token等等.<br />
 可以根据用户属性在此处定制home页，例如：</p>
 <pre><code>if(role == "SA"){
-    MUI.options.homePage: "#sa-home";
+    MUI.options.homePage = "#sa-home";
 }
 else if (role == "MA") {
-    MUI.options.homePage: "#ma-home";
+    MUI.options.homePage = "#ma-home";
 }</code></pre><hr>
 <h2 id="initClient">@fn initClient(param?)</h2><hr>
 <h2 id="Plugins">@class Plugins</h2><hr>
@@ -2336,6 +2369,8 @@ uptoThreshold:: Boolean. 是否达到阈值</code></pre>
 <pre><code>&lt;div mui-initfn="initPageOrders" mui-script="orders.js"&gt;
     &lt;div class="hd"&gt;
         &lt;h2&gt;订单列表&lt;/h2&gt;
+    &lt;/div&gt;
+    &lt;div class="hd"&gt;
         &lt;div class="mui-navbar"&gt;
             &lt;a href="javascript:;" class="active" mui-linkto="#lst1"&gt;待服务&lt;/a&gt;
             &lt;a href="javascript:;" mui-linkto="#lst2"&gt;已完成&lt;/a&gt;
@@ -2349,7 +2384,7 @@ uptoThreshold:: Boolean. 是否达到阈值</code></pre>
 &lt;/div&gt;</code></pre>
 <p>上面页面应注意：</p>
 <ul>
-<li>navbar在header中，不随着滚动条移动而改变位置</li>
+<li>navbar一般放在header(hd)中，不随着滚动条移动而改变位置。(v5.2)hd可以有多个，第一个用作页面标题和导航，在微信中不显示。</li>
 <li>默认要显示的list应加上active类，否则自动取第一个显示列表。</li>
 <li>mui-navbar在点击一项时，会在对应的div组件（通过被点击的<a>按钮上mui-linkto属性指定链接到哪个div）添加class=&quot;active&quot;。非active项会自动隐藏。</li>
 </ul>
@@ -2369,10 +2404,6 @@ uptoThreshold:: Boolean. 是否达到阈值</code></pre>
     },
     onAddItem: function (jlst, itemData) {
         var ji = $("&lt;li&gt;" + itemData.title + "&lt;/li&gt;");
-        ji.appendTo(jlst);
-    },
-    onNoItem: function (jlst) {
-        var ji = $("&lt;li&gt;没有订单&lt;/li&gt;");
         ji.appendTo(jlst);
     }
 });</code></pre>
@@ -2465,14 +2496,15 @@ callSvr(queryParam.ac, queryParam, function (data) {
 <pre><code>param.idx == 0 &amp;&amp; param.isFirstPage</code></pre>
 <p>这里无法判断是否最后一页（可在onLoad回调中判断），因为有可能最后一页为空，这时无法回调onAddItem.</p>
 <p class="param"><strong>@param opt.onNoItem</strong>  (jlst)</p>
-<p>当没有任何数据时，可以插入提示信息。</p>
+<p>当没有任何数据时，可以插入提示信息。缺省会添加&quot;没有数据&quot;提示, 可由CSS类noData来定制样式.<br />
+一般可全局设置 initPageList.onNoItem 回调函数.</p>
 <p class="param"><strong>@param opt.pageItf</strong>  - page interface {refresh?/io}</p>
 <p>在订单页面(PageOrder)修改订单后，如果想进入列表页面(PageOrders)时自动刷新所有列表，可以设置 PageOrders.refresh = true。<br />
 设置opt.pageItf=PageOrders, 框架可自动检查和管理refresh变量。</p>
 <p class="param"><strong>@param opt.navRef,opt.listRef</strong>   指定navbar与list，可以是选择器，也可以是jQuery对象；或是一组button与一组div，一次显示一个div；或是navRef为空，而listRef为一个或多个不相关联的list.</p>
 <p class="param"><strong>@param opt.onBeforeLoad</strong> (jlst, isFirstPage)->Boolean  如果返回false, 可取消load动作。参数isFirstPage=true表示是分页中的第一页，即刚刚加载数据。</p>
 <p class="param"><strong>@param opt.onLoad</strong> (jlst, isLastPage)  参数isLastPage=true表示是分页中的最后一页, 即全部数据已加载完。</p>
-<p class="param"><strong>@param opt.onGetData</strong> (data, pagesz, pagekey?) 每次请求获取到数据后回调。pagesz为请求时的页大小，pagekey为页码（首次为null）</p>
+<p class="param"><strong>@param opt.onGetData</strong> (data, pagesz, pagekey?) 每次请求获取到数据后回调。pagesz为请求时的页大小，pagekey为页码（首次为null）. this为当前jlst</p>
 <p class="param"><strong>@param opt.onRemoveAll</strong> (jlst) 清空列表操作，默认为 jlst.empty()</p>
 <p class="return"><strong>@return PageListInterface=</strong> {refresh, markRefresh, loadMore}</p>
 <ul>
@@ -2579,8 +2611,9 @@ function onChoose(order)
 });</code></pre>
 <p class="key"><strong>@key <a id="initPageList.options">initPageList.options</a></strong>  initPageList默认选项</p>
 <p>如果需要作为全局默认设置可以这样：</p>
-<pre><code>$.extend(initPageList.options, {
+<pre><code>$.extend(MUI.initPageList.options, {
     pageszName: 'rows', 
+    onNoItem: function (jlst) { ... }
     ...
 });</code></pre>
 <p>例2：假定后端分页机制为：</p>
@@ -2618,6 +2651,8 @@ onGetData: function (data, pagesz, pagekey) {
 <pre><code>&lt;div mui-initfn="initPageOrders" mui-script="orders.js"&gt;
     &lt;div class="hd"&gt;
         &lt;h2&gt;订单列表&lt;/h2&gt;
+    &lt;/div&gt;
+    &lt;div class="hd"&gt;
         &lt;div class="mui-navbar"&gt;
             &lt;a href="javascript:;" class="active" mui-linkto="#lst1"&gt;待服务&lt;/a&gt;
             &lt;a href="javascript:;" mui-linkto="#lst2"&gt;已完成&lt;/a&gt;
