@@ -111,6 +111,12 @@ function initPullList(container, opt)
 	var lastUpdateTm_ = new Date();
 	var dy_ = 0; // 纵向移动。<0为上拉，>0为下拉
 
+	// bugfix: 避免同一DOM多次绑定事件
+	if (cont_.pullListInited_) {
+		return;
+	}
+	cont_.pullListInited_ = true;
+
 	window.requestAnimationFrame = window.requestAnimationFrame || function (fn) {
 		setTimeout(fn, 1000/60);
 	};
@@ -164,7 +170,8 @@ function initPullList(container, opt)
 			return;
 		}
 		jo_.html(msg);
-		jo_.height(height).css("lineHeight", height + "px");
+		jo_.height(height);
+		//jo_.height(height).css("lineHeight", height + "px");
 			
 		if (ac == "D") {
 			var c = cont_.getElementsByClassName("mui-pullHint")[0];
@@ -422,6 +429,8 @@ function initPullList(container, opt)
 	<div mui-initfn="initPageOrders" mui-script="orders.js">
 		<div class="hd">
 			<h2>订单列表</h2>
+		</div>
+		<div class="hd">
 			<div class="mui-navbar">
 				<a href="javascript:;" class="active" mui-linkto="#lst1">待服务</a>
 				<a href="javascript:;" mui-linkto="#lst2">已完成</a>
@@ -436,7 +445,7 @@ function initPullList(container, opt)
 
 上面页面应注意：
 
-- navbar在header中，不随着滚动条移动而改变位置
+- navbar一般放在header(hd)中，不随着滚动条移动而改变位置。(v5.2)hd可以有多个，第一个用作页面标题和导航，在微信中不显示。
 - 默认要显示的list应加上active类，否则自动取第一个显示列表。
 - mui-navbar在点击一项时，会在对应的div组件（通过被点击的<a>按钮上mui-linkto属性指定链接到哪个div）添加class="active"。非active项会自动隐藏。
 
@@ -457,10 +466,6 @@ js调用逻辑示例：
 		},
 		onAddItem: function (jlst, itemData) {
 			var ji = $("<li>" + itemData.title + "</li>");
-			ji.appendTo(jlst);
-		},
-		onNoItem: function (jlst) {
-			var ji = $("<li>没有订单</li>");
 			ji.appendTo(jlst);
 		}
 	});
@@ -586,7 +591,8 @@ param={idx, arr, isFirstPage}
 
 @param opt.onNoItem (jlst)
 
-当没有任何数据时，可以插入提示信息。
+当没有任何数据时，可以插入提示信息。缺省会添加"没有数据"提示, 可由CSS类noData来定制样式.
+一般可全局设置 initPageList.onNoItem 回调函数.
 
 @param opt.pageItf - page interface {refresh?/io}
 
@@ -598,7 +604,7 @@ param={idx, arr, isFirstPage}
 @param opt.onBeforeLoad(jlst, isFirstPage)->Boolean  如果返回false, 可取消load动作。参数isFirstPage=true表示是分页中的第一页，即刚刚加载数据。
 @param opt.onLoad(jlst, isLastPage)  参数isLastPage=true表示是分页中的最后一页, 即全部数据已加载完。
 
-@param opt.onGetData(data, pagesz, pagekey?) 每次请求获取到数据后回调。pagesz为请求时的页大小，pagekey为页码（首次为null）
+@param opt.onGetData(data, pagesz, pagekey?) 每次请求获取到数据后回调。pagesz为请求时的页大小，pagekey为页码（首次为null）. this为当前jlst
 
 @param opt.onRemoveAll(jlst) 清空列表操作，默认为 jlst.empty()
 
@@ -726,8 +732,9 @@ param={idx, arr, isFirstPage}
 
 如果需要作为全局默认设置可以这样：
 
-	$.extend(initPageList.options, {
+	$.extend(MUI.initPageList.options, {
 		pageszName: 'rows', 
+		onNoItem: function (jlst) { ... }
 		...
 	});
 
@@ -772,6 +779,8 @@ param={idx, arr, isFirstPage}
 	<div mui-initfn="initPageOrders" mui-script="orders.js">
 		<div class="hd">
 			<h2>订单列表</h2>
+		</div>
+		<div class="hd">
 			<div class="mui-navbar">
 				<a href="javascript:;" class="active" mui-linkto="#lst1">待服务</a>
 				<a href="javascript:;" mui-linkto="#lst2">已完成</a>
@@ -937,12 +946,14 @@ function initPageList(jpage, opt)
 			if (! tm)
 				return;
 			var diff = mCommon.getTimeDiffDscr(tm, new Date());
-			var str = diff + "刷新";
+			var str = "<p>下拉可以刷新</p>";
+			var str1 = "<p>上次刷新：" + diff + "</p>";
 			if (uptoThreshold) {
-				msg = "<b>" + str + "~~~</b>";
+				str = "<p>松开立即刷新</p>";
+				msg = "<div>" + str + str1 + "</div>";
 			}
 			else {
-				msg = str;
+				msg = "<div>" + str + str1 + "</div>";
 			}
 			return msg;
 		}
@@ -1035,7 +1046,7 @@ function initPageList(jpage, opt)
 			if (opt_.onGetData) {
 				var pagesz = queryParam[opt_.pageszName];
 				var pagekey = queryParam[opt_.pagekeyName];
-				opt_.onGetData(data, pagesz, pagekey);
+				opt_.onGetData.call(jlst, data, pagesz, pagekey);
 			}
 			var arr = data;
 			if ($.isArray(data.h) && $.isArray(data.d)) {
@@ -1101,6 +1112,10 @@ initPageList.options = {
 	canPullDown: true,
 	onRemoveAll: function (jlst) {
 		jlst.empty();
+	},
+	onNoItem: function (jlst) {
+		var ji = $("<div class='noData'>没有数据</div>");
+		ji.appendTo(jlst);
 	}
 };
 

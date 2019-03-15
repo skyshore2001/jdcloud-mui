@@ -71,6 +71,11 @@
 		</div>
 	</div>
 
+(v5.2) 
+hd和ft可以有多个, bd只能有一个。框架将自动为它们计算和设置位置。
+hd一般用于显示页面标题、返回和菜单。在hd中出现的第一个h1或h2标签的文字将自动设置为当前文档标题。
+在微信中（如公众号或小程序），第一个hd会自动隐藏，以避免与微信的标题栏重复。
+
 app.css中定义了`btn-icon`为顶栏图标按钮类，如果在`hd`中有多个`btn-icon`，则依次为左一，右一，左二，右二按钮，例如：
 
 	<div class="hd">
@@ -359,19 +364,19 @@ style将被插入到head标签中，并自动添加属性`mui-origin={pageId}`.
 
 		<div class="bd weui-cells">
 			<div class="weui-cell weui-cell_access">
-				<label class="weui-cell_hd weui-label" style="min-width:7em">为<span class="p-name"></span>添加:</label>
+				<label class="weui-cell_hd weui-label">添加:</label>
 				<select id="cboRelation" class="weui-cell__bd weui-select right" style="min-width:90px">
 					<option value="parent">父亲</option>
 					<option value="child">子女</option>
 				</select>
 				<div class="weui-cell__ft"></div>
 			</div>
-			<div class="weui-cell nowrap" style="display:block;">
-				<a id="btnOK" class="mui-btn primary">确定</a>
-				<a id="btnCancel" class="mui-btn">取消</a>
-			</div>
 		</div>
 
+		<div class="ft">
+			<a id="btnCancel" class="mui-btn">取消</a>
+			<a id="btnOK" class="mui-btn primary">确定</a>
+		</div>
 	</div>
 
 要弹出这个对话框：

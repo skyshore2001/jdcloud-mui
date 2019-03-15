@@ -61,6 +61,21 @@ self.container = null;
 */
 self.showFirstPage = true;
 
+/**
+@var nextShowPageOpt
+
+如果指定, 则在下次showPage时生效. 
+初次进入App时无动画效果.
+
+示例: 在返回在指定不要动画效果:
+
+	MUI.nextShowPageOpt = {ani: 'none'};
+	history.back();
+
+因为未直接调用MUI.showPage, 可以用nextShowPageOpt来传递参数. 此参数用后即焚.
+ */
+self.nextShowPageOpt = {ani: 'none'};
+
 var m_jstash; // 页面暂存区; 首次加载页面后可用
 var m_jLoader;
 
@@ -569,6 +584,7 @@ opt.url:: String. 指定在地址栏显示的地址。如 `showPage("#order", {u
 			// opt={orderId: 100}
 		});
 	}
+
 (v5.2)
 @param opt.backNoRefresh ?=false 从新页面返回后，不要刷新当前页
 实际为A->B页面跳转后，此后若有B->A跳转，不触发A页面的pagebeforeshow事件。
@@ -601,7 +617,8 @@ function showPage(pageRef, opt)
 
 	var showPageOpt_ = $.extend({
 		ani: self.options.ani
-	}, opt);
+	}, opt, self.nextShowPageOpt);
+	self.nextShowPageOpt = null;
 
 	var ret = handlePageStack(pageRef);
 	if (ret === false)
@@ -948,12 +965,16 @@ function fixPageSize()
 		var jpage = self.activePage;
 		var H = self.container.height();
 		var jo, hd, ft;
-		jo= jpage.find(">.hd");
-		hd = (jo.size() > 0 && jo.css("display") != "none")? jo.height() : 0;
+		hd = 0;
+		jpage.find(">.hd:visible").each(function () {
+			$(this).css("top", hd);
+			hd += $(this).height();
+		});
 		ft = 0;
-		jpage.find(">.ft").each(function () {
-			if ($(this).is(":visible"))
-				ft += $(this).height();
+		var ftArr = jpage.find(">.ft:visible").get().reverse();
+		$.each(ftArr, function () {
+			$(this).css("bottom", ft);
+			ft += $(this).height();
 		});
 		jpage.height(H);
 		jpage.find(">.bd").css({
@@ -1070,12 +1091,6 @@ function enhanceFooter(jfooter)
 			if (jfooter.parent()[0] !== m_jstash[0])
 				jfooter.appendTo(m_jstash);
 			return;
-		}
-		var jft = jpage.find(".ft");
-		if (jft.size() > 0) {
-			setTimeout(function () {
-				jft.css("bottom", jfooter.height());
-			});
 		}
 		jfooter.appendTo(jpage);
 		activateElem($(e));
@@ -1252,12 +1267,14 @@ function app_alert(msg)
 	if (jdlg.size() == 0) {
 		var html = '' + 
 '<div id="muiAlert" class="mui-dialog">' + 
-'	<h3 class="hd p-title"></h3>' + 
-'	<div class="sp p-msg"></div>' +
-'	<input type="text" id="txtInput" style="border:1px solid #bbb; line-height:1.5">' +
-'	<div class="sp nowrap">' +
-'		<a href="javascript:;" id="btnOK" class="mui-btn primary">确定</a>' +
+'	<div class="hd p-title"></div>' + 
+'	<div class="bd">' + 
+'		<div class="p-msg"></div>' +
+'		<input type="text" id="txtInput" style="border:1px solid #bbb; height:30px; text-align: center">' +
+'	</div>' + 
+'	<div class="ft">' +
 '		<a href="javascript:;" id="btnCancel" class="mui-btn">取消</a>' +
+'		<a href="javascript:;" id="btnOK" class="mui-btn primary">确定</a>' +
 '	</div>' +
 '</div>'
 		jdlg = $(html);
