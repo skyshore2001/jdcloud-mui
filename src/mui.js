@@ -36,19 +36,23 @@ URL参数会自动加入该对象，例如URL为 `http://{server}/{app}/index.ht
 	g_args.orderId=10; // 注意：如果参数是个数值，则自动转为数值类型，不再是字符串。
 	g_args.dscr="上门洗车"; // 对字符串会自动进行URL解码。
 
-此外，框架会自动加一些参数：
+框架会自动处理一些参数：
 
-@var g_args._app?="user" 应用名称，由 WUI.options.appName 指定。
+- g_args._debug: 在测试模式下，指定后台的调试等级，有效值为1-9. 参考：后端测试模式 P_TEST_MODE，调试等级 P_DEBUG.
+- g_args.cordova: 用于在手机APP应用中加载H5应用，参考“原生应用支持”。示例：http://server/jdcloud/m2/index.html?cordova=1
+- g_args.wxCode: 用于在微信小程序中加载H5应用，并自动登录。参考：options.enableWxLogin 微信认证登录
+- g_args.enableSwitchApp: 允许多应用自动切换功能。参考：options.enableSwitchApp
+- g_args.logout: 退出登录后再进入应用。示例：http://server/jdcloud/m2/index.html?logout
 
 @see parseQuery URL参数通过该函数获取。
 */
-window.g_args = {}; // {_test, _debug, cordova}
+window.g_args = {}; // {_debug, cordova}
 
 /**
 @var g_cordova
 
-值是一个整数，默认为0. 
-如果非0，表示WEB应用在苹果或安卓APP中运行，且数值代表原生应用容器的大版本号。
+值是一个整数，默认为0. 可用它来判断WEB应用是否在APP容器中运行。
+如果非0，表示WEB应用在苹果或安卓APP中运行，且数值代表原生应用容器的版本号。
 
 示例：检查用户APP版本是否可以使用某些插件。
 
@@ -59,7 +63,27 @@ window.g_args = {}; // {_test, _debug, cordova}
 		}
 	}
 
-TODO: MUI.cordova
+WEB应用容器应在URL中传递cordova参数，表示容器版本号。该版本号会保存在ApiLog的ver字段中。
+
+如果容器不支持上述约定，可在WEB应用初始化时设置g_cordova变量来做兼容，示例：
+
+	// UserAgent for infiniti app
+	// android example: Mozilla/5.0 ... AppVersion/1.2.4 ... AppName/dafengche+infiniti
+	// iphone example: Mozilla/5.0 ... Souche/Dafengche/spartner/infiniti/InfinitiInhouse/1.2.4
+	function initApp() {
+		var ua = navigator.userAgent;
+		var m;
+		if ((m = ua.match(/android.*appversion\/([\d.]+)/i)) || (m = ua.match(/iphone.*infinitiInhouse\/([\d.]+)/i))) {
+			MUI.options.appName = "emp-m";
+			var ver = m[1];
+			if (m = ver.match(/(\d+)\.(\d+)\.(\d+)/)) {
+				window.g_cordova = parseInt(m[1]) * 10000 + parseInt(m[2]) * 100 + parseInt(m[3]);
+			}
+		}
+	}
+	initApp();
+
+@see 原生应用支持
 */
 window.g_cordova = 0; // the version for the android/ios native cient. 0 means web app.
 
@@ -107,6 +131,11 @@ window.g_data = {}; // {userInfo, serverRev?, initClient?, testMode?, mockMode?}
 前景设置使用"light"(白色)或"dark"(黑色)。
 设置为"none"表示隐藏标题栏。
 设置为空("")表示禁止框架设置状态栏。
+
+@var options.fixTopbarColor?=false
+
+如果为true, 则自动根据页面第一个hd的背景色设置手机顶栏颜色.
+适合每个页面头部颜色不同的情况. 更复杂的情况, 可使用`MUI.setTopbarColor`手工设置顶栏颜色.
 
 @var options.manualSplash?=false
 @see topic-splashScreen
@@ -169,7 +198,23 @@ window.g_data = {}; // {userInfo, serverRev?, initClient?, testMode?, mockMode?}
 
 在IOS+cordova环境下，点击事件会有300ms延迟，默认会加载lib/fastclick.min.js解决。
 
+该库会导致部分场景下点击失效问题。这时可以通过在关键点击元素上设置"needsclick"类来解决。
+
+例如：fastclick库与图片裁切库image-process-tool有些冲突, ios手机APP中点修改头像无法弹出图片选择框. JS初始化配置如下：
+
+	var zxImageProcess = new ZxImageProcess({
+		// 触发文件选择的元素
+		selector: jpage.find(".downSelect-btn[value=1]")[0],
+		...
+	});
+
+最终将绑定用于点击的元素 `<div class='downSelect-btn'></div>`改为 `<div class='downSelect-btn needsclick'></div>`解决。
+发现IOS上点击失效问题，可先设置`options.disableFastClick=true`检查问题是否消失来判定。
+
+TODO: cordova-ios未来将使用WkWebView作为容器（目前仍使用UIWebView），将不再有点击延迟问题，到时将去除FastClick库。
+
 @var options.onAutoLogin 自动登录
+@event autoLogin 自动登录事件(v5.4)
 
 设置如何自动登录系统，进入应用后，一般会调用tryAutoLogin，其中会先尝试重用已有会话，如果当前没有会话则回调onAutoLogin自动登录系统。
 返回true则跳过后面系统默认的登录过程，包括使用本地保存的token自动登录以及调用login接口。
@@ -189,6 +234,10 @@ window.g_data = {}; // {userInfo, serverRev?, initClient?, testMode?, mockMode?}
 		// 修改了URL后直接跳出即可。不用返回true
 		MUI.app_abort();
 	}
+
+(v5.4)也可以用autoLogin事件：
+
+	$(document).on("autoLogin", onAutoLogin);
 
 @var options.enableWxLogin 微信认证登录
 
@@ -213,6 +262,77 @@ window.g_data = {}; // {userInfo, serverRev?, initClient?, testMode?, mockMode?}
 
 在APP中初次打开H5应用(history.length<=1)时，会在进入应用后自动检查和切换应用（将在MUI.validateEntry函数中检查，一般H5应用的主JS文件入口处默认会调用它）。
 最好在URL中添加参数enableSwitchApp=1强制检查，例如在chrome中初次打开页面history.length为2，不加参数就无法自动切换H5应用。
+
+@var options.onShowPage(pageRef, opt) 显示页面前回调
+
+(v5.4) 在调用MUI.showPage时触发调用，参数与MUI.showPage相同，用于显示任何页面前通用的操作。
+此回调在页面加载或显示之前（先于目的页面的pagecreate/pagebeforeshow等事件）。
+如果返回false，则取消本次showPage调用。
+
+示例1：允许用户未登录使用，但除了home页面，进入其它页面均要求登录。
+注意：系统默认要求登录才能进入，若要修改，可在muiInit事件中修改调用`MUI.tryAutoLogin(..., allowNoLogin=true)`来实现允许未登录进入。
+此需求如果放在每个页面的pagebeforeshow中处理则非常麻烦，可在onShowPage中统一处理。
+
+	$.extend(MUI.options, {
+		...
+		onShowPage: onShowPage
+	});
+
+	...
+	// MUI.tryAutoLogin(handleLogin, "User.get");
+	MUI.tryAutoLogin(handleLogin, "User.get", true); // 允许未登录进入。
+
+	// 如果未登录，跳转login。
+	function onShowPage(pageRef, opt) {
+		if (pageRef == "#home" || pageRef == "#setUserInfo" || pageRef.substr(0, 6) == "#login")
+			return;
+
+		// 如果是未登录进入，则跳转登录页。
+		if (!g_data.userInfo) {
+			MUI.showLogin();
+			return false;
+		}
+	}
+
+示例2：接上例，当系统在微信中使用时，允许用户使用微信身份自动登录，并可以查看home页面。
+但如果用户尚未绑定过手机号，在进入其它页面时，必须先绑定手机号。
+
+	$.extend(MUI.options, {
+		...
+		onShowPage: onShowPage
+	});
+
+	// 如果手机号没有填写，则要求填写并返回false。
+	function onShowPage(pageRef, opt) {
+		if (pageRef == "#home" || pageRef == "#setUserInfo" || pageRef.substr(0, 6) == "#login")
+			return;
+
+		// 如果是未登录进入，则跳转登录页。
+		if (!g_data.userInfo) {
+			MUI.showLogin(pageRef);
+			return false;
+		}
+		if (g_data.userInfo && !g_data.userInfo.phone) {
+			PageSetUserInfo.userInit = true;
+			PageSetUserInfo.fromPageRef = pageRef;
+			MUI.showPage("#setUserInfo");
+			return false;
+		}
+	}
+
+@var options.showLoadingDelay ?= 500  延迟显示加载图标
+
+(v5.4) 默认如果在500ms内如果远程调用成功, 则不显示加载图标.
+
+
+@var options.skipErrorRegex 定义要忽略的错误
+
+示例：有video标签时，缩小窗口或全屏预览时，有时会报一个错（见下例），暂不清楚解决方案，也不影响执行，可以先安全忽略它不要报错：
+
+	$.extend(MUI.options, {
+		skipErrorRegex: /ResizeObserver loop limit exceeded/i,
+	});
+
 */
 	var m_opt = self.options = {
 		appName: "user",
@@ -225,10 +345,13 @@ window.g_data = {}; // {userInfo, serverRev?, initClient?, testMode?, mockMode?}
 		PAGE_SZ: 20,
 		manualSplash: false,
 		mockDelay: 50,
+		showLoadingDelay: 500,
 
 		pluginFolder: "../plugin",
 		showHash: ($("base").attr("mui-showHash") != "no"),
-		statusBarColor: "#,light"
+		statusBarColor: "#,light",
+
+		skipErrorRegex: null
 	};
 
 	var m_onLoginOK;
@@ -240,12 +363,8 @@ function document_pageCreate(ev)
 	var jpage = $(ev.target);
 
 	var jhdr = jpage.find("> .hd");
-	// 标题栏空白处点击5次, 进入测试模式
-	jhdr.click(function (ev) {
-		// 注意避免子元素bubble导致的事件
-		if ($(ev.target).hasClass("hd") || ev.target.tagName == "H1" || ev.target.tagName == "H2")
-			switchTestMode(this); 
-	});
+	// 标题栏空白处点击5次, 进入测试模式; 注意避免子元素bubble导致的事件
+	self.doSpecial(jhdr, "H1,H2", switchTestMode);
 }
 
 $(document).on("pagecreate", document_pageCreate);
@@ -256,7 +375,9 @@ $(document).on("pagecreate", document_pageCreate);
 @param fn Function(data); 与callSvr时的回调相同，data为服务器返回的数据。
 函数中可以使用this["userPost"] 来获取post参数。
 
-@param opt.validate: Function(jf, queryParam={ac?,...}). 如果返回false, 则取消submit. queryParam为调用参数，可以修改。
+@param opt.validate: Function(jf, queryParam={ac?,...}). 
+如果返回false, 则取消submit. queryParam为调用参数，可以修改。
+(v5.3) 支持异步提交，返回Deferred对象时，表示在Deferred.resolve之后再提交。
 
 form提交时的调用参数, 如果不指定, 则以form的action属性作为queryParam.ac发起callSvr调用.
 form提交时的POST参数，由带name属性且不带disabled属性的组件决定, 可在validate回调中设置．
@@ -289,6 +410,20 @@ form提交时的POST参数，由带name属性且不带disabled属性的组件决
 
 @param opt.onNoAction: Function(jf). 当form中数据没有变化时, 不做提交. 这时可调用该回调函数.
 
+(v5.3)
+异步提交示例：点击提交后，先上传照片，照片传完获取到picId，然后做之后提交动作
+
+	MUI.setFormSubmit(jf, api_fn1, {
+		validate: function(jf, queryParam) {
+			var dfd = $.Deferred();
+			uploadPic.submit().then(function (picId) {
+				jf[0].picId.value = picId;
+				dfd.resolve();
+			});
+			return dfd;
+		}
+	});
+
 */
 self.setFormSubmit = setFormSubmit;
 function setFormSubmit(jf, fn, opt)
@@ -302,19 +437,29 @@ function setFormSubmit(jf, fn, opt)
 
 		var queryParam = {ac: jf.attr("action")};
 		if (opt.validate) {
-			if (false === opt.validate(jf, queryParam))
+			var ret = opt.validate(jf, queryParam);
+			if (false === ret)
 				return false;
+			// 异步支持
+			if (ret && ret.then) {
+				ret.then(doSubmit);
+				return false;
+			}
 		}
-		var postParam = mCommon.getFormData(jf);
-		if (! $.isEmptyObject(postParam)) {
-			var ac = queryParam.ac;
-			delete queryParam.ac;
-			self.callSvr(ac, queryParam, fn, postParam, {userPost: postParam});
-		}
-		else if (opt.onNoAction) {
-			opt.onNoAction(jf);
-		}
+		doSubmit();
 		return false;
+
+		function doSubmit() {
+			var postParam = mCommon.getFormData(jf);
+			if (! $.isEmptyObject(postParam)) {
+				var ac = queryParam.ac;
+				delete queryParam.ac;
+				self.callSvr(ac, queryParam, fn, postParam, {userPost: postParam});
+			}
+			else if (opt.onNoAction) {
+				opt.onNoAction(jf);
+			}
+		}
 	});
 }
 //}}}
@@ -368,6 +513,9 @@ $(document).on("deviceready", function () {
 					bar.styleLightContent();
 			}
 		}
+		if (m_opt.fixTopbarColor) {
+			fixTopbarColor();
+		}
 		if (mCommon.isIOS()) {
 			// bugfix: IOS上显示statusbar时可能窗口大小不正确
 			bar.overlaysWebView(false);
@@ -377,6 +525,44 @@ $(document).on("deviceready", function () {
 		}
 	}
 });
+
+
+/**
+@fn MUI.setTopbarColor(colorHex, style?)
+
+@param colorHex 颜色值,格式如 "#fafafa", 可用MUI.rgb2hex函数转换.
+@param style dark|light
+
+设置顶栏颜色和字体黑白风格.
+*/
+self.setTopbarColor = setTopbarColor;
+function setTopbarColor(colorHex, style)
+{
+	var bar = window.StatusBar;
+	if (g_cordova && bar && colorHex) {
+		bar.backgroundColorByHexString(colorHex);
+		if (style) {
+			if (style === "dark")
+				bar.styleDefault();
+			else if (style === "light")
+				bar.styleLightContent();
+		}
+		self.options.statusBarColor = colorHex;
+	}
+}
+
+function fixTopbarColor()
+{
+	if (!g_cordova)
+		return;
+	$(document).on("pageshow", function () {
+		var color = MUI.activePage.find(".hd").css("backgroundColor"); // format: "rgb(...)"
+		if (color) {
+			var colorHex = self.rgb2hex(color); // call rgb(...)
+			setTopbarColor(colorHex);
+		}
+	});
+}
 
 //}}}
 
@@ -503,6 +689,7 @@ function getAppPage()
 	MUI.validateEntry([
 		"#home",
 		"#me",
+		/^#udt__/  # (v5.3) 支持正则式
 	]);
 
 */
@@ -526,9 +713,22 @@ function validateEntry(allowedEntries)
 		return;
 	m_allowedEntries = allowedEntries;
 
-	if (location.hash && location.hash != "#" && allowedEntries.indexOf(location.hash) < 0) {
+	if (location.hash && location.hash != "#" && !isAllowed()) {
 		location.href = location.pathname; // remove search and hash like "?k=v#page1"
 		self.app_abort();
+	}
+
+	function isAllowed() {
+		var found = false;
+		//var hash = decodeURIComponent(location.hash);
+		var hash = location.hash;
+		$.each(allowedEntries, function () {
+			if ( (this instanceof RegExp && this.test(hash)) || this == hash) {
+				found = true;
+				return false;
+			}
+		});
+		return found;
 	}
 }
 
@@ -549,7 +749,12 @@ function parseArgs()
 			$(function () {
 				var path = './';
 				if (mCommon.isIOS()) {
-					mCommon.loadScript(path + "cordova-ios/cordova.js?__HASH__,.."); 
+					if (g_args.mergeJs) {
+						mCommon.loadScript(path + "lib-cordova-ios.min.js"); 
+					}
+					else {
+						mCommon.loadScript(path + "cordova-ios/cordova.js?__HASH__,.."); 
+					}
 
 					if (! m_opt.disableFastClick) {
 						// introduce fastclick for IOS webview: https://github.com/ftlabs/fastclick
@@ -559,7 +764,12 @@ function parseArgs()
 					}
 				}
 				else {
-					mCommon.loadScript(path + "cordova/cordova.js?__HASH__,.."); 
+					if (g_args.mergeJs) {
+						mCommon.loadScript(path + "lib-cordova.min.js"); 
+					}
+					else {
+						mCommon.loadScript(path + "cordova/cordova.js?__HASH__,.."); 
+					}
 				}
 			});
 		}
@@ -656,6 +866,7 @@ function tryAutoLogin(onHandleLogin, reuseCmd, allowNoLogin)
 		if (self.options.onAutoLogin() === true)
 			return true;
 	}
+	$(document).trigger("autoLogin");
 
 	// then use "login(token)"
 	var token = loadLoginToken();
@@ -765,34 +976,21 @@ window.Plugins = {
 //}}}
 
 // ------ main {{{
-
-// 单击5次，每次间隔不大于2s
-function switchTestMode(obj)
+// 标题栏单击5次召唤
+function switchTestMode()
 {
-	var INTERVAL = 4; // 2s
-	var MAX_CNT = 5;
-	var f = switchTestMode;
-	var tm = new Date();
-	// init, or reset if interval 
-	if (f.cnt == null || f.lastTm == null || tm - f.lastTm > INTERVAL*1000 || f.lastObj != obj)
-	{
-		f.cnt = 0;
-		f.lastTm = tm;
-		f.lastObj = obj;
+	var url = prompt("切换URL?", location.href);
+	if (url == null || url === "")
+		return;
+	if (url == location.href) {
+		MUI.reloadPage();
+		return;
 	}
-//	console.log("switch: " + f.cnt);
-	if (++ f.cnt >= MAX_CNT) {
-		f.cnt = 0;
-		f.lastTm = tm;
-		var url = prompt("切换URL?", location.href);
-		if (url == null || url === "" || url == location.href)
-			return;
-		if (url[0] == "/") {
-			url = "http://" + url;
-		}
-		location.href = url;
-		self.app_abort();
+	if (url[0] == "/") {
+		url = "http://" + url;
 	}
+	location.href = url;
+	self.app_abort();
 }
 
 function main()
@@ -939,6 +1137,13 @@ function hd_back(pageRef)
 
 向后端发送日志。后台必须已添加syslog插件。
 日志可在后台Syslog表中查看，客户端信息可查看ApiLog表。
+
+@param module app,fw(framework),page
+@param pri ERR,INF,WARN
+
+示例：
+
+	MUI.syslog("app", "ERR", "fail to pay: " + err.msg);
 
 注意：如果操作失败，本函数不报错。
  */

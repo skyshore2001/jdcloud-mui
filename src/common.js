@@ -13,7 +13,8 @@ function assert(cond, dscr)
 		var msg = "!!! assert fail!";
 		if (dscr)
 			msg += " - " + dscr;
-		throw(msg);
+		// 用throw new Error会有调用栈; 直接用throw "some msg"无法获取调用栈.
+		throw new Error(msg);
 	}
 }
 
@@ -354,7 +355,12 @@ Date.prototype.diff = function(sInterval, dtEnd)
 	var dtStart = this;
 	switch (sInterval) 
 	{
-		case 'd' :return Math.round((dtEnd - dtStart) / 86400000);
+		case 'd' :
+		{
+			var d1 = (dtStart.getTime() - dtStart.getTimezoneOffset()*60000) / 86400000;
+			var d2 = (dtEnd.getTime() - dtEnd.getTimezoneOffset()*60000) / 86400000;
+			return Math.floor(d2) - Math.floor(d1);
+		}	
 		case 'm' :return dtEnd.getMonth() - dtStart.getMonth() + (dtEnd.getFullYear()-dtStart.getFullYear())*12;
 		case 'y' :return dtEnd.getFullYear() - dtStart.getFullYear();
 		case 's' :return Math.round((dtEnd - dtStart) / 1000);
@@ -721,7 +727,10 @@ function rs2MultiHash(rs, key)
 }
 
 /**
-@fn list2varr(ls, sep=':', sep2=',')
+@fn list2varr(ls, colSep=':', rowSep=',')
+
+- ls: 代表二维表的字符串，有行列分隔符。
+- colSep, rowSep: 列分隔符，行分隔符。
 
 将字符串代表的压缩表("v1:v2:v3,...")转成对象数组。
 
@@ -876,14 +885,16 @@ function appendParam(url, param)
 	var url = "http://xxx/api.php?a=1&b=3&c=2";
 	var url1 = deleteParam(url, "b"); // "http://xxx/api.php?a=1&c=2";
 
+	var url = "http://server/jdcloud/m2/?logout#me";
+	var url1 = deleteParam(url, "logout"); // "http://server/jdcloud/m2/?#me"
+
 */
 self.deleteParam = deleteParam;
 function deleteParam(url, paramName)
 {
-	var ret = url.replace(new RegExp('&?' + paramName + "=[^&#]+"), '');
-	if (ret.indexOf('?&') >=0) {
-		ret = ret.replace('?&', '?');
-	}
+	var ret = url.replace(new RegExp('&?\\b' + paramName + "\\b(=[^&#]+)?"), '');
+	ret = ret.replace(/\?&/, '?');
+	// ret = ret.replace(/\?(#|$)/, '$1'); // 问号不能去掉，否则history.replaceState(null,null,"#xxx")会无效果
 	return ret;
 }
 
@@ -1081,7 +1092,7 @@ function jdModule(name, fn, overrideCtor)
 	}
 
 	var ret;
-	if (fn instanceof Function) {
+	if (typeof(fn) === "function") {
 		if (window.jdModuleMap[name]) {
 			fn.call(window.jdModuleMap[name]);
 		}

@@ -67,7 +67,7 @@ self.showFirstPage = true;
 如果指定, 则在下次showPage时生效. 
 初次进入App时无动画效果.
 
-示例: 在返回在指定不要动画效果:
+示例: 在返回上一页时指定不要动画效果:
 
 	MUI.nextShowPageOpt = {ani: 'none'};
 	history.back();
@@ -359,7 +359,7 @@ function deleteUrlParam(param)
 {
 	delete g_args[param];
 	var search = mCommon.deleteParam(location.search, param);
-	MUI.setUrl(search);
+	self.setUrl(search);
 }
 
 /**
@@ -398,6 +398,7 @@ function callInitfn(jo, paramArr)
 
 	if (initfn && $.isFunction(initfn))
 	{
+		console.log("### initfn: " + initfn.name);
 		ret = initfn.apply(jo, paramArr) || true;
 	}
 	jo.data("mui.init", ret);
@@ -480,11 +481,13 @@ initPageStack();
 // "#xx/aaa.html" => {pageId: "aaa", pageRef: "#aaa", pageFile: "xx/aaa.html"}
 // "#plugin1-page1" => 支持多级目录，如果plugin1不是一个插件：{pageId: "plugin1-page1", pageFile: "{pageFolder}/plugin1/page1.html"}
 // "#plugin1-page1" => 如果plugin1是一个插件：{pageId: "plugin1-page1", pageFile: "{pluginFolder}/plugin1/m2/page/page1.html"}
+// "#udf__A" => {pageId: "udf__A", pageRef: "#udf__A", pageFile: "udf.html"
 function getPageInfo(pageRef)
 {
 	if (pageRef == "#" || pageRef == "" || pageRef == null)
 		pageRef = self.options.homePage;
 	var pageId = pageRef[0] == '#'? pageRef.substr(1): pageRef;
+	var tplName = pageId.split("__")[0];
 	var ret = {pageId: pageId, pageRef: pageRef};
 	var p = pageId.lastIndexOf(".");
 	if (p == -1) {
@@ -496,14 +499,14 @@ function getPageInfo(pageRef)
 				ret.pageFile = self.options.pluginFolder + '/' + plugin + '/m2/page/' + pageId2 + '.html';
 			}
 		}
-		ret.templateRef = "#tpl_" + pageId;
+		ret.templateRef = "#tpl_" + tplName;
 	}
 	else {
 		ret.pageFile = pageId;
 		ret.pageId = pageId.match(/[^.\/]+(?=\.)/)[0];
 	}
 	if (ret.pageFile == null) 
-		ret.pageFile = self.options.pageFolder + '/' + pageId.replace(/-/g, '/') + ".html";
+		ret.pageFile = self.options.pageFolder + '/' + tplName.replace(/-/g, '/') + ".html";
 	return ret;
 }
 
@@ -515,7 +518,7 @@ function getPageInfo(pageRef)
   如果未指定，则使用当前URL的hash或指定的主页(MUI.options.homePage). "#"表示主页。
 @param opt {ani, url, backNoRefresh}  (v3.3) 该参数会传递给pagebeforeshow/pageshow回调函数。
 
-opt.ani:: String. 动画效果。设置为"none"禁用动画。
+opt.ani:: String. 动画效果。设置为"none"禁用动画。默认页面由右向左进入，设置为"up"表示由下向上进入（常用于popup页面）。
 
 opt.url:: String. 指定在地址栏显示的地址。如 `showPage("#order", {url: "?id=100"})` 可设置显示的URL为 `page/order.html?id=100`.
 @see setUrl
@@ -590,6 +593,32 @@ opt.url:: String. 指定在地址栏显示的地址。如 `showPage("#order", {u
 实际为A->B页面跳转后，此后若有B->A跳转，不触发A页面的pagebeforeshow事件。
 在initPage时，也可直接在页面上设置: `jpage.prop("backNoRefresh", ["page1", "page2"])`, 表示从page1, page2转到当前页面，不触发pagebeforeshow事件。注意，数组中保存的是pageId，不是pageRef.
 
+(v5.4) 设置backNoRefresh选项会导致pagebeforeshow事件不触发，对于必须依赖pagebeforeshow事件的逻辑，可以监听`pagebeforeshow.always`事件。
+
+(v5.3)
+支持一个页面模板可创建多个页面实例。
+
+	MUI.showPage("udt__费用");
+	MUI.showPage("udt__供应商");
+
+两者用同一套html/js，但数据不会干扰。
+
+(v5.4)
+@key mui-ani 指定本页面进入时的动画效果. 支持"up"(由下向上), "pop"(fade展开)。
+@key slideIn
+@key slideOut
+支持扩展动画效果。例如新动画名为"xx"，请参考mui.css定义slideIn_xx, slideOut_xx类，即可使用：
+
+在page上指定进入动画：
+
+	<div mui-initfn="initSynopsis" mui-script="doctorSynopsis.js" mui-ani="up">
+
+在显示页面时指定动画：
+
+	MUI.showPage("#doctorSynopsis", {ani: "up"});
+	或
+	<a href="#doctorSynopsis" mui-opt="ani:'up'">页面1<a>
+
 */
 self.showPage = showPage;
 function showPage(pageRef, opt)
@@ -603,6 +632,7 @@ function showPage(pageRef, opt)
 		pageRef = self.options.homePage;
 	else if (pageRef[0] != "#")
 		pageRef = "#" + pageRef; // 为了兼容showPage(pageId), 新代码不建议使用
+	pageRef = decodeURIComponent(pageRef);
 
 	// 避免hashchange重复调用
 	if (m_lastPageRef == pageRef)
@@ -614,6 +644,9 @@ function showPage(pageRef, opt)
 		m_isback = false; // 新页面
 		//self.m_pageStack.push(pageRef);
 	}
+
+	if (self.options.onShowPage && self.options.onShowPage(pageRef, opt) === false)
+		return;
 
 	var showPageOpt_ = $.extend({
 		ani: self.options.ani
@@ -631,6 +664,8 @@ function showPage(pageRef, opt)
 	// find in document
 	var pageId = pi.pageId;
 	m_toPageId = pageId;
+	self.syslog("page", null, pageId);
+
 	var jpage = self.container.find("#" + pageId + ".mui-page");
 	// find in template
 	if (jpage.size() > 0)
@@ -776,6 +811,8 @@ function showPage(pageRef, opt)
 
 		if (!skipBeforeShow)
 			jpage.trigger("pagebeforeshow", [showPageOpt_]);
+		else
+			jpage.trigger("pagebeforeshow.always", [showPageOpt_]);
 		// 如果在pagebeforeshow中调用showPage显示其它页，则不显示当前页，避免页面闪烁。
 		if (toPageId != m_toPageId)
 		{
@@ -790,21 +827,35 @@ function showPage(pageRef, opt)
 			return;
 		}
 
-		var enableAni = showPageOpt_.ani !== 'none'; // TODO
-		var slideInClass = m_isback? "slideIn1": "slideIn";
-		m_isback = null;
-		self.container.show(); // !!!! 
-		jpage.css("z-index", 1).show();
-		if (oldPage)
-			oldPage.css("z-index", "-1");
+		var enableAni = showPageOpt_.ani !== 'none';
+		var isback = m_isback && oldPage;
+		var slideClass = isback? "slideOut": "slideIn";
 		if (enableAni) {
-			jpage.addClass(slideInClass);
-			jpage.one("animationend", onAnimationEnd)
-				.one("webkitAnimationEnd", onAnimationEnd);
+			if (! isback) {
+				var ani = showPageOpt_.ani || jpage.attr("mui-ani");
+				if (ani) {
+					slideClass += "_" + ani;
+					if (showPageOpt_.ani)
+						jpage.attr("mui-ani", ani);
+				}
+				jpage.addClass(slideClass)
+					.one("animationend", onAnimationEnd)
+					.one("webkitAnimationEnd", onAnimationEnd);
+			}
+			else {
+				var ani = oldPage.attr("mui-ani");
+				if (ani)
+					slideClass += "_" + ani;
 
-// 				if (oldPage)
-// 					oldPage.addClass("slideOut");
+				oldPage.addClass(slideClass)
+					.one("animationend", onAnimationEnd)
+					.one("webkitAnimationEnd", onAnimationEnd);
+			}
 		}
+		jpage.css("z-index", 1).show();
+		self.container.show(); // !!!! 
+
+		m_isback = null;
 		self.activePage = jpage;
 		fixPageSize();
 		var title = jpage.find(".hd h1, .hd h2").filter(":first").text() || self.title || jpage.attr("id");
@@ -816,10 +867,14 @@ function showPage(pageRef, opt)
 		function onAnimationEnd()
 		{
 			if (enableAni) {
-				// NOTE: 如果不删除，动画效果将导致fixed position无效。
-				jpage.removeClass(slideInClass);
-// 					if (oldPage)
-// 						oldPage.removeClass("slideOut");
+				if (! isback) {
+					// NOTE: 如果不删除，动画效果将导致fixed position无效。
+					jpage.removeClass(slideClass);
+				}
+				else {
+					oldPage.css("z-index", "-1");
+					oldPage.removeClass(slideClass);
+				}
 			}
 			if (toPageId != m_toPageId)
 				return;
@@ -840,6 +895,8 @@ function showPage(pageRef, opt)
 @fn setDocTitle(title)
 
 设置文档标题。默认在切换页面时，会将文档标题设置为逻辑页的标题(`hd`块中的`h1`或`h2`标签)。
+
+文档原始标题可通过`MUI.title`获得。
 */
 self.setDocTitle = setDocTitle;
 function setDocTitle(newTitle)
@@ -1080,7 +1137,7 @@ function enhanceFooter(jfooter)
 		return id2nav[pageId];
 	}
 
-	$(document).on("pagebeforeshow", function (ev) {
+	$(document).on("pagebeforeshow.always", function (ev) {
 		var jpage = $(ev.target);
 		var pageId = jpage.attr("id");
 		if (m_toPageId != pageId)
@@ -1387,7 +1444,7 @@ function hideLoading()
 //}}}
 // ------- ui: anchor {{{
 
-self.m_enhanceFn["a[href^=#]"] = enhanceAnchor;
+self.m_enhanceFn["a[href^='#']"] = enhanceAnchor;
 
 function enhanceAnchor(jo)
 {
@@ -1413,11 +1470,24 @@ function enhanceAnchor(jo)
 	
 function main()
 {
+/**
+@var title
+
+文档原始标题保存在`MUI.title`，在切换逻辑页面时，document.title会自动变更为当前页标题。
+
+@see setDocTitle
+*/
 	self.title = document.title;
 	self.container = $(".mui-container");
 	if (self.container.size() == 0)
 		self.container = $(document.body);
 	self.enhanceWithin(self.container);
+
+	// URL参数logout：先注销再进入
+	if (g_args.logout) {
+		self.deleteUrlParam("logout");
+		self.logout(true);
+	}
 
 	// 在muiInit事件中可以调用showPage.
 	self.container.trigger("muiInit");

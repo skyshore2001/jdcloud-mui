@@ -144,6 +144,8 @@ function setOnError()
 			return true;
 		if (errObj instanceof DirectReturn || /abort$/.test(msg) || (!script && !line))
 			return true;
+		if (self.options.skipErrorRegex && self.options.skipErrorRegex.test(msg))
+			return true;
 		if (errObj === undefined && msg === "[object Object]") // fix for IOS9
 			return true;
 		debugger;
@@ -434,25 +436,33 @@ function getQueryParam(kvList)
 }
 
 /**
-@fn doSpecial(jo, filter, fn)
+@fn doSpecial(jo, filter, fn, cnt=5, interval=2s)
 
-连续5次点击某处，执行隐藏动作。
+连续5次点击某处，每次点击间隔不超过2s, 执行隐藏动作。
 
 例：
-	// 连续5次点击当前tab标题，重新加载页面
+	// 连续5次点击当前tab标题，重新加载页面. ev为最后一次点击事件.
 	var self = WUI;
-	self.doSpecial(self.tabMain.find(".tabs-header"), ".tabs-selected", function () {
+	self.doSpecial(self.tabMain.find(".tabs-header"), ".tabs-selected", function (ev) {
 		self.reloadPage();
 		self.reloadDialog(true);
+
+		// 弹出菜单
+		//jmenu.menu('show', {left: ev.pageX, top: ev.pageY});
+		return false;
 	});
+
+连续3次点击对话框中的字段标题，触发查询：
+
+	WUI.doSpecial(jdlg, ".wui-form-table td", fn, 3);
 
 */
 self.doSpecial = doSpecial;
-function doSpecial(jo, filter, fn)
+function doSpecial(jo, filter, fn, cnt, interval)
 {
-	jo.on("click", filter, function (ev) {
-		var INTERVAL = 4; // 4s
-		var MAX_CNT = 5;
+	var MAX_CNT = cnt || 5;
+	var INTERVAL = interval || 2; // 2s
+	jo.on("click.special", filter, function (ev) {
 		var tm = new Date();
 		var obj = this;
 		// init, or reset if interval 
@@ -467,7 +477,7 @@ function doSpecial(jo, filter, fn)
 		fn.cnt = 0;
 		fn.lastTm = tm;
 
-		fn();
+		fn.call(this, ev);
 	});
 }
 }

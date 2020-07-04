@@ -563,8 +563,8 @@ navRef是否为空的区别是，如果非空，则表示listRef是一组互斥�
 
 ## 参数说明
 
-@param opt {onGetQueryParam?, onAddItem?, onNoItem?, pageItf?, navRef?=">.hd .mui-navbar", listRef?=">.bd .p-list", onBeforeLoad?, onLoad?, onGetData?, canPullDown?=true, onRemoveAll?}
-@param opt 分页相关 { pageszName?="pagesz", pagekeyName?="pagekey" }
+@param opt {onGetQueryParam?, onAddItem?, onNoItem?, pageItf?, navRef?=">.hd .mui-navbar", listRef?=">.bd .p-list", onBeforeLoad?, onLoad?, onGetData?, canPullDown?=true, onRemoveAll?, jContainer?}
+@param opt 分页相关 { pageszName?="pagesz", pagekeyName?="pagekey", localPageSize? }
 
 @param opt.onGetQueryParam Function(jlst, queryParam/o)
 
@@ -613,6 +613,10 @@ param={idx, arr, isFirstPage}
 - refresh: Function(), 刷新当前列表
 - markRefresh: Function(jlst?), 刷新指定列表jlst或所有列表(jlst=null), 下次浏览该列表时刷新。
 - loadMore: Function(), 加载下一页数据
+
+@param opt.jContainer 设置列表所有的容器，默认为页面body(".bd")对象。
+
+注意jContainer必须有固定高度(.bd会由框架自动设置高度)，否则会造成无法上下拉动，除非设置了 opt.canPullDown=false。
 
 ## css类
 
@@ -816,8 +820,8 @@ jlst:: 当前活动页。函数如果返回false，则取消所有上拉加载�
 
 ## 仅自动加载，禁止下拉刷新行为
 
-有时不想为列表容器指定固定高度，而是随着列表增长而自动向下滚动，在滚动到底时自动加载下一页。
-这时可禁止下拉刷新行为：
+只上拉加载，不需要下拉刷新行为。随着列表增长而自动向下滚动，在滚动到底时自动加载下一页。
+这时容器允许没有固定高度，而是可禁止下拉刷新行为：
 
 	var listItf = initPageList(jpage, 
 		...,
@@ -828,6 +832,25 @@ jlst:: 当前活动页。函数如果返回false，则取消所有上拉加载�
 
 设置为false时，当列表到底部时，可以自动加载下一页，但没有下拉刷新行为，这时页面容器也不需要确定高度。
 
+## 本地分页
+
+@param opt.localPageSize
+
+服务器一次性返回所有数据，在前端不想一次性全部显示，比如也按10条一页分页显示，下拉加载下一页，称为本地分页.
+这个场景下可以设置`opt.localPageSize=10`，示例：
+
+	var lstIf = MUI.initPageList(jpage, {
+		...
+		localPageSize: 10, // 设置本地分页
+		onGetQueryParam: function (jlst, queryParam) {
+			queryParam.ac = "Ordr.query";
+			...
+			queryParam.pagesz = -1; // 服务端不分页
+		},
+		onAddItem: onAddItem
+	});
+
+也支持是远程分页+本地分页混用, 但没有意义, 容易造成错乱, 故请匆混用.
  */
 self.initPageList = initPageList;
 function initPageList(jpage, opt)
@@ -837,6 +860,7 @@ function initPageList(jpage, opt)
 	var jbtns_ = opt_.navRef instanceof jQuery? opt_.navRef: jpage.find(opt_.navRef);
 	var firstShow_ = true;
 	var busy_ = false;
+	var localPagingFn_ = null;
 
 	if (jbtns_.hasClass("mui-navbar")) {
 		jbtns_ = jbtns_.find("a");
@@ -888,6 +912,7 @@ function initPageList(jpage, opt)
 			});
 		});
 
+		var jContainer = opt_.jContainer || jallList_.closest(".bd");
 		if (opt_.canPullDown) {
 			var pullListOpt = {
 				onLoadItem: showOrderList,
@@ -902,13 +927,13 @@ function initPageList(jpage, opt)
 				}
 			};
 
-			jallList_.parent().each(function () {
+			jContainer.each(function () {
 				var container = this;
 				initPullList(container, pullListOpt);
 			});
 		}
 		else {
-			jallList_.parent().scroll(function () {
+			jContainer.scroll(function () {
 				var container = this;
 				//var distanceToBottom = cont_.scrollHeight - cont_.clientHeight - cont_.scrollTop;
 				if (! busy_ && container.scrollTop / (container.scrollHeight - container.clientHeight) >= 0.95) {
@@ -983,7 +1008,13 @@ function initPageList(jpage, opt)
 		var nextkey = jlst.data("nextkey_");
 		if (isRefresh) {
 			nextkey = null;
+			localPagingFn_ = null;
 		}
+		else if (localPagingFn_) {
+			localPagingFn_();
+			return;
+		}
+
 		if (nextkey == null) {
 			opt_.onRemoveAll(jlst); // jlst.empty();
 		}
@@ -1060,10 +1091,30 @@ function initPageList(jpage, opt)
 			var isFirstPage = (nextkey == null);
 			var isLastPage = (data.nextkey == null);
 			var param = {arr: arr, isFirstPage: isFirstPage};
-			$.each(arr, function (i, itemData) {
-				param.idx = i;
-				opt_.onAddItem && opt_.onAddItem(jlst, itemData, param);
-			});
+
+			if (opt_.localPageSize && arr.length >= opt_.localPageSize) {
+				// 前端本地分页
+				var curIdx = 0;
+				var fn = function () {
+					for (var i=curIdx; i<arr.length && i-curIdx<opt_.localPageSize; ++i) {
+						param.idx = i;
+						opt_.onAddItem && opt_.onAddItem(jlst, arr[i], param);
+					}
+					if (i >= arr.length) {
+						localPagingFn_ = null;
+					}
+					curIdx = i;
+				};
+				localPagingFn_ = fn;
+				fn(); // 显示第一页
+			}
+			else {
+				$.each(arr, function (i, itemData) {
+					param.idx = i;
+					opt_.onAddItem && opt_.onAddItem(jlst, itemData, param);
+				});
+			}
+
 			if (! isLastPage)
 				jlst.data("nextkey_", data.nextkey);
 			else {

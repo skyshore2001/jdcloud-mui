@@ -53,7 +53,7 @@ function showByFormMode(jo, formMode)
 /**
 @fn initPageDetail(jpage, opt) -> PageDetailInterface={refresh(), del()}
 
-详情页框架. 用于对象的添加/查看/更新多合一页面.
+详情页框架. 用于对象的添加/查看/更新/删除多合一页面.
 form.action为对象名.
 
 @param opt {pageItf, jform?=jpage.find("form:first"), onValidate?, onGetData?, onNoAction?=history.back, onAdd?, onSet?, onGet?, onDel?}
@@ -61,7 +61,7 @@ form.action为对象名.
 pageItf: {formMode, formData}; formData用于forSet模式下显示数据, 它必须有属性id. 
 Form将则以pageItf.formData作为源数据, 除非它只有id一个属性(这时将则调用callSvr获取源数据)
 
-onValidate: Function(jform, queryParam); 提交前的验证, 或做字段补全的工作, 或补全调用参数。queryParam是查询参数，它可能包含{ac?, res?, ...}，可以进行修改。
+onValidate: Function(jform, queryParam); 提交前的验证, 或做字段补全的工作, 或补全调用参数。queryParam是查询参数，它可能包含{ac?, res?, ...}，可以进行修改。(v5.3)支持返回Deferred对象做异步提交。
 onGetData: Function(jform, queryParam); 在forSet模式下，如果需要取数据，则回调该函数，获取get调用的参数。
 onNoAction: Function(jform); 一般用于更新模式下，当没有任何数据更改时，直接点按钮提交，其实不做任何调用, 这时将回调 onNoAction，缺省行为是返回上一页。
 onAdd: Function(id); 添加完成后的回调. id为新加数据的编号. 
@@ -82,16 +82,20 @@ onDel: Function(); 删除对象后回调.
 		...
 		<div class="bd">
 			<form action="Person">
+				编号：<input name="id" class="forSet"> 
 				<input name="name" required placeholder="输入名称">
 				<textarea name="dscr" placeholder="写点简介"></textarea>
 				<div class="forSet">人物标签</div>
 
 				<button type="submit" id="btnOK">确定</button>
+				<button type="button" id="btnDel">删除</button>
 				<input type="text" style="display:none" name="familyId">
 
 			</form>
 		</div>
 	</div>
+
+注意：支持设置CSS类forSet,forAdd，用于标识只在更新或添加模式下使用。上例中编号id在添加时不出现，在更新时才显示。
 
 调用initPageDetail使它成为支持添加、查看和更新的详情页：
 
@@ -104,7 +108,7 @@ onDel: Function(); 删除对象后回调.
 	{
 		var jpage = this;
 		var pageItf = PagePerson;
-		initPageDetail(jpage, {
+		var detailItf = MUI.initPageDetail(jpage, {
 			pageItf: pageItf, // 需要页面接口提供 formMode, formData等属性。
 			onValidate: function (jf) {
 				// 补足字段和验证字段，返回false则取消form提交。
@@ -122,6 +126,12 @@ onDel: Function(); 删除对象后回调.
 				PagePersons.show({refresh: true});
 			},
 		});
+
+		jpage.find("#btnDel").click(btnDel_click);
+
+		function btnDel_click(ev) {
+			app_alert("删除记录？", "q", detailItf.del.bind(detailItf));
+		}
 	}
 
 	// 其它页调用它：
@@ -160,6 +170,28 @@ onDel: Function(); 删除对象后回调.
 
 如果formData中有多个属性，则自动以formData的内容作为数据源显示页面，不再发起查询。
 
+(v5.3) 在onValidate中返回Deferred对象，可支持异步提交。
+示例：先上传完照片获得picId后，再添加或保存。
+
+	initPageDetail(jpage, {
+		...,
+		onValidate: function (jf) {
+			var dfd = $.Deferred();
+			// 上传照片完成后再提交
+			uploadPic.submit().then(function (picId) {
+				jf[0].picId.value = picId;
+				dfd.resolve();
+			});
+			return dfd;
+		},
+		onGet: function (data) {
+			// 显示照片
+			jpage.find(".uploadpic").attr("data-atts", data.picId);
+			uploadPic.reset();
+		},
+	}
+
+@see setFormSubmit
 */
 self.initPageDetail = initPageDetail;
 function initPageDetail(jpage, opt)
@@ -169,7 +201,7 @@ function initPageDetail(jpage, opt)
 		throw("require opt.pageItf");
 	var jf = opt.jform || jpage.find("form:first");
 	var obj_ = jf.attr("action");
-	if (!obj_ || /\W/.test(obj_)) 
+	if (!obj_ || /\s/.test(obj_)) 
 		throw("bad object: form.action=" + obj_);
 
 	jpage.on("pagebeforeshow", onPageBeforeShow);

@@ -132,7 +132,7 @@ app.css中定义了`btn-icon`为顶栏图标按钮类，如果在`hd`中有多�
 	}
 
 @event pagecreate(ev) DOM事件。this为当前页面，习惯名为jpage。
-@event pagebeforeshow(ev, opt) DOM事件。this为当前页面。opt参数为`MUI.showPage(pageRef, opt?)`中的opt，如未指定则为`{}`
+@event pagebeforeshow(ev, opt) DOM事件。this为当前页面。opt参数为`MUI.showPage(pageRef, opt?)`中的opt，如未指定则为`{}`。(v5.4) 设置backNoRefresh选项会忽略此事件，这时可用pagebeforeshow.always替代。
 @event pageshow(ev, opt)  DOM事件。this为当前页面。opt参数与pagebeforeshow事件的opt参数一样。
 @event pagehide(ev) DOM事件。this为当前页面。
 
@@ -200,7 +200,7 @@ style将被插入到head标签中，并自动添加属性`mui-origin={pageId}`.
 
 #### 进入应用时动态显示初始逻辑页
 
-默认进入应用时的主页为 MUI.options.homePage. 如果要根据参数动态显示页面，应在muiInit事件中操作：
+默认进入应用时的主页为 MUI.options.homePage. 如果要根据参数动态显示页面，可在muiInit事件中操作，示例：
 
 	$(document).on("muiInit", myInit);
 
@@ -230,6 +230,8 @@ style将被插入到head标签中，并自动添加属性`mui-origin={pageId}`.
 	}
 
 在pagebeforeshow事件中做页面切换，框架保证不会产生闪烁，且在新页面上点返回按钮，不会返回到旧页面。
+
+(v5.4) 如果想在页面加载前添加处理逻辑，请参考 MUI.options.onShowPage 回调，可处理检测是否登录这类需求。
 
 除此之外如果多次调用showPage（包括在pageshow事件中调用），一般最终显示的是最后一次调用的页面，过程中可能产生闪烁，且可能会丢失一些pageshow/pagehide事件，应尽量避免。
 
