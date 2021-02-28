@@ -487,6 +487,13 @@ style将被插入到head标签中，并自动添加属性`mui-origin={pageId}`.
 	statusBarColor: "#ffffff,dark" // 白底黑字
 	statusBarColor: "none" // 不显示状态栏。
 
+如果不同页面有不同颜色，可以设置切换页面时自动按照页面头颜色来设置:
+
+	WUI.options.fixTopbarColor=true
+
+注意此时要设置顶栏颜色，页面必须有页头即hd类并设置好颜色，若不需要页头可以设置隐藏.
+@see options.fixTopbarColor
+
 如果希望自行设置状态栏，可以设置statusBarColor为null:
 
 	MUI.options.statusBarColor = null;

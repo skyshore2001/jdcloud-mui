@@ -555,13 +555,16 @@ function fixTopbarColor()
 {
 	if (!g_cordova)
 		return;
-	$(document).on("pageshow", function () {
+	$(document).on("pageshow", onPageShow);
+	onPageShow();
+	
+	function onPageShow() {
 		var color = MUI.activePage.find(".hd").css("backgroundColor"); // format: "rgb(...)"
 		if (color) {
 			var colorHex = self.rgb2hex(color); // call rgb(...)
 			setTopbarColor(colorHex);
 		}
-	});
+	}
 }
 
 //}}}
@@ -748,7 +751,7 @@ function parseArgs()
 			mCommon.setStorage("cordova", g_cordova);
 			$(function () {
 				var path = './';
-				if (mCommon.isIOS()) {
+				if (/iPhone|iPad|Macintosh/i.test(navigator.userAgent)) {
 					if (g_args.mergeJs) {
 						mCommon.loadScript(path + "lib-cordova-ios.min.js"); 
 					}
