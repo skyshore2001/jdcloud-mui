@@ -1117,6 +1117,7 @@ function enhanceNavbar(jo)
 
 function enhanceFooter(jfooter)
 {
+	jfooter.remove();
 	enhanceNavbar(jfooter);
 	jfooter.addClass("ft").addClass("mui-navbar");
 	var jnavs = jfooter.find(">a");
