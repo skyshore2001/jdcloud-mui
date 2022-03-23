@@ -380,14 +380,6 @@ FormItem.prototype = {
 		return this;
 		// for: combo, subobj
 		//WUI.setOptions(ji, v);
-	},
-
-	// 用于显示的虚拟字段值, 此处以select为例，适用于my-combobox
-	getValue_vf: function (jo) {
-		var o = jo[0];
-		if (o.tagName == "SELECT")
-			return o.options[o.selectedIndex].innerText;
-		return this.getValue(jo);
 	}
 };
 

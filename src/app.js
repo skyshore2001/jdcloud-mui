@@ -371,6 +371,7 @@ function getQueryCond(kvList)
 	function handleOne(k,v) {
 		if (v == null || v === "" || v.length==0)
 			return;
+
 		var hint = null;
 		var k1 = k.split('/');
 		if (k1.length > 1) {
