@@ -359,7 +359,44 @@ TODO: cordova-ios未来将使用WkWebView作为容器（目前仍使用UIWebView
 		showHash: ($("base").attr("mui-showHash") != "no"),
 		statusBarColor: "#,light",
 
-		skipErrorRegex: null
+		skipErrorRegex: null,
+
+/**
+@var MUI.options.moduleExt
+
+用于模块扩展。
+
+	// 定制模块的接口调用地址
+	MUI.options.moduleExt.callSvr = function (name) {
+		// name为callSvr调用的接口名，返回实际URL地址；示例：
+		var map = {
+			"Ordr__Mes.query" => "../../mes/api/Ordr.query",
+			"Ordr__Item.query" => "../../mes/api/Item.query"
+		}
+		return map[name] || name;
+	}
+
+详细用法案例，可参考：筋斗云开发实例讲解 - 系统复用与微服务方案。
+*/
+		moduleExt: {},
+
+/**
+@var MUI.options.xparam
+
+参数加密特性。默认为1（开启），在后端接口返回当前是测试模式时，会改为0（关闭）。
+也可以在chrome控制台中直接修改，如`MUI.options.xparam=0`。
+ */
+		xparam: 1,
+
+/**
+@var MUI.options.useNewThumb
+
+带缩略图的图片编号保存风格。
+
+- 0: 保存小图编号，用att(id)取小图，用att(thumbId)取大图
+- 1: 保存大图编号，用att(id,thumb=1)取小图，用att(id)取大图
+ */
+		useNewThumb: 0
 	};
 
 	var m_onLoginOK;
@@ -945,9 +982,18 @@ function isAllowNoLogin(page)
 		MUI.options.homePage = "#ma-home";
 	}
 
+@var dfdLogin
+
+(v6) 用于在登录完成状态下执行操作的Deferred/Promise对象。
+示例：若未登录，则在登录后显示消息；若已登录则直接显示消息
+
+	WUI.dfdLogin.then(function () {
+		app_show("hello");
+	});
 
 */
 self.handleLogin = handleLogin;
+self.dfdLogin = $.Deferred();
 function handleLogin(data)
 {
 	saveLoginToken(data);
@@ -969,6 +1015,7 @@ function handleLogin(data)
 	if (popN > 0)
 		self.popPageStack(popN);
 
+	self.dfdLogin.resolve();
 	if (m_onLoginOK) {
 		var fn = m_onLoginOK;
 		m_onLoginOK = null;
