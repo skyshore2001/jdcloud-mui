@@ -134,7 +134,7 @@ function DirectReturn() {}
 @fn windowOnError()
 
 框架自动在脚本出错时弹框报错，并上报服务端(syslog).
-可通过MUI.options.skipErrorRegex忽略指定错误。
+可通过WUI.options.skipErrorRegex忽略指定错误。
  */
 function windowOnError(ev)
 {

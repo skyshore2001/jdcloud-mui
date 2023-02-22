@@ -1026,6 +1026,75 @@ function handleLogin(data)
 	}
 }
 //}}}
+
+// === language {{{
+/**
+@var LANG 多国语言支持/翻译
+
+系统支持通过URL参数lang指定语言，如指定英文版本：`http://myserver/myapp/m2/index.html?lang=en`
+
+如果未指定lang参数，则根据html的lang属性来确定语言，如指定英文版：
+
+	<html lang="en">
+
+默认为开发语言(lang="dev")，以中文为主。英文版下若想切换到开发语言，可以用`http://myserver/myapp/m2/index.html?lang=dev`
+g_args.lang中保存着实际使用的语言。
+
+自带英文语言翻译文件lib/lang-en.js，当lang=en时加载它。可扩展它或以它为模板创建其它语言翻译文件。
+语言翻译文件中，设置全局变量LANG，将开发语言翻译为其它语言。
+
+系统会自动为菜单项、页面标题、列表表头标题、对话框标题等查找翻译。
+其它DOM组件若想支持翻译，可手工添加CSS类lang，如:
+
+	<div><label class="lang"><input type="checkbox" value="mgr">最高管理员</label></div>
+
+	<a href="javascript:logout()" class="logout"><span class="lang"><i class="icon-exit"></i>退出系统</span></a>
+
+或在代码中，使用WUI.enhanceLang(jo)来为DOM组件支持翻译，或直接用T(str)翻译字符串。
+注意lang类或enhanceLang函数不能设置组件下子组件的文字，可先取到文字组件再设置如`WUI.enhanceLang(jo.find(".title"))`。
+
+@fn T(s) 字符串翻译
+
+T函数用于将开发语言翻译为当前使用的语言。
+
+@key .lang DOM组件支持翻译
+@fn enhanceLang(jo) DOM组件支持翻译
+
+ */
+function T(s) {
+	if (s == null || LANG == null)
+		return s;
+	return LANG[s] || s;
+}
+
+function initLang() {
+	window.LANG = null;
+	window.T = T;
+	if (!g_args.lang)
+		g_args.lang = document.documentElement.lang || 'dev';
+	if (g_args.lang != 'dev') {
+		mCommon.loadScript("lib/lang-" + g_args.lang + ".js", {async: false});
+		//mCommon.loadScript("lib/easyui/locale/easyui-lang-en.js");
+	}
+	else {
+		//mCommon.loadScript("lib/easyui/locale/easyui-lang-zh_CN.js");
+	}
+}
+
+self.m_enhanceFn[".lang"] = self.enhanceLang = enhanceLang;
+function enhanceLang(jo)
+{
+	if (LANG == null)
+		return;
+	jo.contents().each(function () {
+		if (this.nodeType == 3) { // text
+			var t = T(this.nodeValue);
+			this.nodeValue = t;
+		}
+	});
+}
+// }}}
+
 //}}}
 
 // ------ plugins {{{

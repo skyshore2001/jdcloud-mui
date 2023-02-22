@@ -300,14 +300,14 @@ function defDataProc(rv)
 		if (g_data.testMode != val) {
 			g_data.testMode = val;
 			if (g_data.testMode)
-				modeStr = "测试模式";
+				modeStr = T("测试模式");
 			self.options.xparam = 0;
 		}
 		val = mCommon.parseValue(this.xhr_.getResponseHeader("X-Daca-Mock-Mode"));
 		if (g_data.mockMode != val) {
 			g_data.mockMode = val;
 			if (g_data.mockMode)
-				modeStr = "测试模式+模拟模式";
+				modeStr = T("测试模式") + "," + T("模拟模式");
 		}
 		if (modeStr) {
 			self.dfdLogin.then(function () {
@@ -324,7 +324,7 @@ function defDataProc(rv)
 	catch (e)
 	{
 		leaveWaiting(ctx);
-		var msg = "服务器数据错误。";
+		var msg = T("服务器数据错误。");
 		self.app_alert(msg);
 		ctx.dfd.reject.call(this, msg);
 		return;
@@ -387,11 +387,11 @@ function defDataProc(rv)
 			return RV_ABORT;
 		}
 		logError();
-		self.app_alert("操作失败：" + rv[1], "e");
+		self.app_alert(T("操作失败") + ": " + rv[1], "e");
 	}
 	else {
 		logError();
-		self.app_alert("服务器通讯协议异常!", "e"); // 格式不对
+		self.app_alert(T("服务器通讯协议异常!"), "e"); // 格式不对
 	}
 	return RV_ABORT;
 
@@ -512,7 +512,13 @@ function makeUrl(action, params)
 		}
 		else {
 			url = opt.serverUrl;
-			params[opt.serverUrlAc || "ac"] = action;
+			var ac = opt.serverUrlAc || "ac";
+			if (! params[ac]) {
+				params[ac] = action;
+			}
+			else { // 如果已有ac参数在用，则改用优先级更多的_ac参数，不覆盖原参数
+				params["_ac"] = action;
+			}
 		}
 		xparam = opt.xparam;
 	}
