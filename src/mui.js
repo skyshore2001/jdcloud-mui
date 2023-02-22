@@ -834,6 +834,7 @@ function parseArgs()
 	}
 }
 parseArgs();
+initLang();
 
 // ---- login token for auto login {{{
 function tokenName()
