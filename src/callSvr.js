@@ -328,10 +328,10 @@ function defDataProc(rv)
 	var mod = getCallSvrExt(ext);
 	if (mod && mod.dataFilter) {
 		var ret = mod.dataFilter.call(this, rv);
-			if (ret == null || ret === false)
-				self.lastError = ctx;
-			return ret;
-		}
+		if (ret == null || ret === false)
+			self.lastError = ctx;
+		return ret;
+	}
 
 	if (rv && $.isArray(rv) && rv.length >= 2 && typeof rv[0] == "number") {
 		var that = this;
@@ -479,7 +479,7 @@ function makeUrl(action, params)
 		/*
 		if (urlOpt.ac) {
 			action = urlOpt.ac;
-	}
+		}
 		if (urlOpt.ext) {
 			ext = urlOpt.ext;
 		}
@@ -552,8 +552,8 @@ function makeUrl(action, params)
 	{
 		var o = new String(url);
 		o.makeUrl = true;
-			o.action = action;
-			o.params = params;
+		o.action = action;
+		o.params = params;
 		o.action0 = action0;
 		o.ext = ext;
 		delete o.params.ac;
