@@ -1097,18 +1097,17 @@ function enhanceLang(jo)
 
 //}}}
 
-// ------ plugins {{{
+// ------ main {{{
 /**
 @fn initClient(param?)
 */
 self.initClient = initClient;
-var plugins_ = {};
 function initClient(param)
 {
 	self.callSvrSync('initClient', param, function (data) {
 		g_data.initClient = data;
-		plugins_ = data.plugins || {};
-		$.each(plugins_, function (k, e) {
+		Plugins.plugins_ = data.plugins || {};
+		$.each(Plugins.plugins_, function (k, e) {
 			if (e.js) {
 				// "plugin/{pluginName}/{plugin}.js"
 				var js = m_opt.pluginFolder + '/' + k + '/' + e.js;
@@ -1118,27 +1117,6 @@ function initClient(param)
 	});
 }
 
-/**
-@class Plugins
-*/
-window.Plugins = {
-/**
-@fn Plugins.exists(pluginName)
-*/
-	exists: function (pname) {
-		return plugins_[pname] !== undefined;
-	},
-
-/**
-@fn Plugins.list()
-*/
-	list: function () {
-		return plugins_;
-	}
-};
-//}}}
-
-// ------ main {{{
 // 标题栏单击5次召唤
 function switchTestMode()
 {
@@ -1293,35 +1271,6 @@ function hd_back(pageRef)
 		return;
 	}
 	history.back();
-}
-
-/**
-@fn syslog(module, pri, content)
-
-向后端发送日志。后台必须已添加syslog插件。
-日志可在后台Syslog表中查看，客户端信息可查看ApiLog表。
-
-@param module app,fw(framework),page
-@param pri ERR,INF,WARN
-
-示例：
-
-	MUI.syslog("app", "ERR", "fail to pay: " + err.msg);
-
-注意：如果操作失败，本函数不报错。
- */
-self.syslog = syslog;
-function syslog(module, pri, content)
-{
-	if (! Plugins.exists("syslog"))
-		return;
-
-	try {
-		var postParam = {module: module, pri: pri, content: content};
-		self.callSvr("Syslog.add", $.noop, postParam, {noex:1, noLoadingImg:1});
-	} catch (e) {
-		console.log(e);
-	}
 }
 
 }

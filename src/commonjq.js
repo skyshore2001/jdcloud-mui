@@ -587,7 +587,7 @@ function setFormData(jo, data, opt)
 示例：在菜单中加一项“工单工时统计”，动态加载并执行一个JS文件：
 store.html中设置菜单：
 
-				<a href="javascript:WUI.loadScript('page/mod_工单工时统计.js')">工单工时统计</a>
+				<a href="javascript:;" onclick="WUI.loadScript('page/mod_工单工时统计.js')">工单工时统计</a>
 	
 在`page/mod_工单工时统计.js`文件中写报表逻辑，`mod`表示一个JS模块文件，示例：
 
@@ -1416,7 +1416,7 @@ function makeTree(arr, idField, fatherIdField, childrenField)
             input = utf8Encode(input);
             var key = keyString;
             if (enhance) {
-                var n = self.randInt(1,63);
+                var n = enhance == 2? (input.length%64 +1): self.randInt(1,63);
                 var n1 = (n+input.length) % 64;
                 key = key.substr(n,64-n) + key.substr(0, n) + ' '; // last is changed to space for trim
                 output = keyString.charAt(n) + key.charAt(n1);
