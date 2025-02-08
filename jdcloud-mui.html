@@ -33,7 +33,7 @@ code {
 </head>
 
 <h1>MUI</h1>
-<div>最后更新：2023-02-22</div>
+<div>最后更新：2025-02-08</div>
 <h2>Modules</h2>
 <div class="toc">
 <p><a href="#MUI">MUI (module)</a></p>
@@ -83,6 +83,7 @@ code {
 <p><a href="#Promise">Promise (alias)</a></p>
 <p><a href="#Q">Q (fn)</a></p>
 <p><a href="#STORAGE_PREFIX">STORAGE_PREFIX (var)</a></p>
+<p><a href="#String.split2">String.split2 (fn)</a></p>
 <p><a href="#T">T (fn)</a></p>
 <p><a href="#WUI.getTmRange">WUI.getTmRange (fn)</a></p>
 <p><a href="#activePage">activePage (var)</a></p>
@@ -129,7 +130,6 @@ code {
 <p><a href="#formItems">formItems (fn)</a></p>
 <p><a href="#formatField">formatField (fn)</a></p>
 <p><a href="#g_args">g_args (var)</a></p>
-<p><a href="#g_args.enableSwitchApp">g_args.enableSwitchApp (key)</a></p>
 <p><a href="#g_cordova">g_cordova (var)</a></p>
 <p><a href="#g_data">g_data (var)</a></p>
 <p><a href="#g_data.initClient">g_data.initClient (key)</a></p>
@@ -191,6 +191,7 @@ code {
 <p><a href="#mui-script">mui-script (key)</a></p>
 <p><a href="#mui-swipenav">mui-swipenav (key)</a></p>
 <p><a href="#muiInit">muiInit (event)</a></p>
+<p><a href="#myround">myround (fn)</a></p>
 <p><a href="#nextShowPageOpt">nextShowPageOpt (var)</a></p>
 <p><a href="#numberSort">numberSort (fn)</a></p>
 <p><a href="#objarr2list">objarr2list (fn)</a></p>
@@ -1117,17 +1118,21 @@ var html = applyTpl(tpl, data);
 <p>e.g.</p>
 <pre><code>var str = kvList2Str({"CR":"Created", "PA":"Paid"}, ';', ':');
 // str="CR:Created;PA:Paid"</code></pre><hr>
-<h2 id="parseKvList">@fn parseKvList(kvListStr, sep, sep2, doReverse?) -> kvMap</h2>
+<h2 id="parseKvList">@fn parseKvList(kvListStr, sep, sep2, doReverse?, onKv?) -> kvMap</h2>
 <p>解析key-value列表字符串，返回kvMap。</p>
 <ul>
 <li>doReverse: 设置为true时返回反向映射</li>
+<li>onKv(kv): 如果指定，可函数对数组（必为2项）可进行修改</li>
 </ul>
 <p>示例：</p>
 <pre><code>var map = parseKvList("CR:新创建;PA:已付款", ";", ":");
 // map: {"CR": "新创建", "PA":"已付款"}
 
 var map = parseKvList("CR:新创建;PA:已付款", ";", ":", true);
-// map: {"新创建":"CR", "已付款":"PA"}</code></pre><hr>
+// map: {"新创建":"CR", "已付款":"PA"}</code></pre>
+<p>sep和sep2支持使用正则式，以下处理结果相同：</p>
+<pre><code>var map = parseKvList("CR:新创建;PA:已付款", /[; ]/, /[:=]/);
+var map2 = parseKvList("CR=新创建 PA=已付款", /[; ]/, /[:=]/);</code></pre><hr>
 <h2 id="Q">@fn Q(str, q?="'")</h2>
 <pre><code>Q("abc") -&gt; 'abc'
 Q("a'bc") -&gt; 'a\'bc'</code></pre><hr>
@@ -1158,6 +1163,13 @@ jpage.find("#content").html(html);</code></pre>
 <pre><code>var a = {a: 1};
 WUI.extendNoOverride(a, {b: 'aa'}, {a: 99, b: '33', c: 'bb'});
 // a = {a: 1, b: 'aa', c: 'bb'}</code></pre><hr>
+<h2 id="myround">@fn myround(floatValue, digitCnt=6)</h2>
+<p>与toFixed相比，它返回float数组，不带多余的0位。</p>
+<pre><code>myround(114957.15999999, 4) = 114957.16
+myround(114957.15999999, 1) = 114957.2</code></pre><hr>
+<h2 id="Plugins">@class Plugins</h2><hr>
+<h2 id="Plugins.exists">@fn Plugins.exists(pluginName)</h2><hr>
+<h2 id="Plugins.list">@fn Plugins.list()</h2><hr>
 <h2 id="jdModule">@fn jdModule(name?, fn?)</h2>
 <p>定义JS模块。这是一个全局函数。</p>
 <p>定义一个模块:</p>
@@ -1231,6 +1243,11 @@ rewriterule ^jdserver ws://oliveche.com/jdserver/ [P,L]</code></pre>
 <pre><code>jdPush('app1'); // 默认用户为g_data.userInfo.id
 callSvr('/jdserver/push', {app: 'app1', user: '*', msg: 'hi'});
 // 在控制台可收到hi</code></pre><hr>
+<h2 id="String.split2">@fn String.split2(pattern)</h2>
+<p>将字符串分为两块。替代JS默认的split函数limit参数的错误设计。</p>
+<pre><code>var str = "lot Lot ID";
+var kv = str.split2(" "); // ["lot", "Lot ID"]
+// str.split(" ", 2); // ["lot", "Lot"] 不合要求</code></pre><hr>
 <h2 id="getFormData">@fn getFormData(jo, doGetAll)</h2>
 <p>取DOM对象中带name属性的子对象的内容, 放入一个JS对象中, 以便手工调用callSvr.</p>
 <p>注意: </p>
@@ -1409,7 +1426,7 @@ loadScript("http://otherserver/path/1.js"); // 跨域加载</code></pre>
 </ul>
 <p>示例：在菜单中加一项“工单工时统计”，动态加载并执行一个JS文件：<br />
 store.html中设置菜单：</p>
-<pre><code>            &lt;a href="javascript:WUI.loadScript('page/mod_工单工时统计.js')"&gt;工单工时统计&lt;/a&gt;</code></pre>
+<pre><code>            &lt;a href="javascript:;" onclick="WUI.loadScript('page/mod_工单工时统计.js')"&gt;工单工时统计&lt;/a&gt;</code></pre>
 <p>在<code>page/mod_工单工时统计.js</code>文件中写报表逻辑，<code>mod</code>表示一个JS模块文件，示例：</p>
 <pre><code>function show工单工时统计()
 {
@@ -1646,7 +1663,7 @@ function doNext() { }</code></pre>
         {id: 4, fatherId: 1}
     ]
 ]</code></pre><hr>
-<h2 id="evalAttr">@fn evalAttr(jo, name)</h2>
+<h2 id="evalAttr">@fn evalAttr(jo, name, ctx?)</h2>
 <p>返回一个属性做eval后的js值。</p>
 <p>示例：读取一个对象值：</p>
 <pre><code>var opt = evalAttr(jo, "data-opt");
@@ -1674,9 +1691,23 @@ function doNext() { }</code></pre>
 可通过WUI.options.skipErrorRegex忽略指定错误。</p><hr>
 <h2 id="m_enhanceFn">@var m_enhanceFn</h2><hr>
 <h2 id="enhanceWithin">@fn enhanceWithin(jparent)</h2><hr>
-<h2 id="getOptions">@fn getOptions(jo, defVal?)</h2>
+<h2 id="getOptions">@fn getOptions(jo, defVal?, ctx?)</h2>
 <p>第一次调用，根据jo上设置的data-options属性及指定的defVal初始化，或为<code>{}</code>。<br />
 存到jo.prop(&quot;muiOptions&quot;)上。之后调用，直接返回该属性。</p>
+<p>通过指定ctx, 可以为属性计算时添加可访问接口, 示例: (eol1Sn属性是需要取下面input中的值)</p>
+<pre><code>&lt;button type="button" class="btnPlcNotify" data-options="newItemFlag:1, eol1Sn:ctx.eolSn"&gt;Move In from eol-1&lt;/button&gt;
+&lt;input id="eolSn" value="sn1"&gt; </code></pre>
+<p>取值:</p>
+<pre><code>var data = WUI.getOptions($(this), null, {
+    eol1Sn: jpage.find("eolSn").val()
+}</code></pre>
+<p>当然ctx也可以做成个funciton比如:</p>
+<pre><code>&lt;button type="button" class="btnPlcNotify" data-options="newItemFlag:1, eol1Sn:ctx('#eolSn').val()"&gt;Move In from eol-1&lt;/button&gt;
+&lt;input id="eolSn" value="sn1"&gt; 
+
+var data = WUI.getOptions($(this), null, function (ref) {
+    return jpage.find(ref);
+});</code></pre>
 <p class="see"><strong>@see <a href="#evalAttr">evalAttr</a></strong> </p><hr>
 <h2 id="getQueryCond">@fn getQueryCond(kvList)</h2>
 <p class="var"><strong>@var <a id="queryHint">queryHint</a></strong>  查询用法提示</p>
@@ -1716,7 +1747,7 @@ WUI.getQueryCond(kvList); // 结果同上。</code></pre>
 <p>(v5.5) value支持用数组表示范围（前闭后开区间），特别方便为起始、结束时间生成条件：</p>
 <pre><code>var cond = getQueryCond({tm: ["2019-1-1", "2020-1-1"]}); // 生成 "tm&gt;='2019-1-1' AND tm&lt;'2020-1-1'"
 var cond = getQueryCond({tm: [null, "2020-1-1"]}); // 生成 "tm&lt;'2020-1-1'"。数组中任一值为null或''都一样会被忽略。
-var cond = getQueryCond({tm: [null, null]); // 返回空串''</code></pre>
+var cond = getQueryCond({tm: [null, null]}); // 返回空串''</code></pre>
 <p class="see"><strong>@see <a href="#getQueryParam">getQueryParam</a></strong> </p>
 <p class="see"><strong>@see <a href="#getQueryParamFromTable">getQueryParamFromTable</a></strong>  获取datagrid的当前查询参数</p>
 <p class="see"><strong>@see <a href="#doFind">doFind</a></strong> </p>
@@ -1796,18 +1827,11 @@ callSvr("User.set", {id: user.id}, function () {
 <p>模拟数据可直接返回[code, data]格式的JSON数组，框架会将其序列化成JSON字符串，以模拟实际场景。<br />
 如果要查看调用与返回数据日志，可在浏览器控制台中设置 MUI.options.logAction=true，在控制台中查看日志。</p>
 <p>如果设置了MUI.callSvrExt，调用名(ac)中应包含扩展(ext)的名字，例：</p>
-<pre><code>MUI.callSvrExt['zhanda'] = {...};
-callSvr(['token/get-token', 'zhanda'], ...);</code></pre>
-<p>要模拟该接口，应设置</p>
-<pre><code>MUI.mockData["zhanda:token/get-token"] = ...;</code></pre>
-<p class="see"><strong>@see <a href="#callSvrExt">callSvrExt</a></strong> </p>
-<p>也支持&quot;default&quot;扩展，如：</p>
-<pre><code>MUI.callSvrExt['default'] = {...};
-callSvr(['token/get-token', 'default'], ...);
-或
-callSvr('token/get-token', ...);</code></pre>
+<pre><code>MUI.callSvrExt['zhanda'] = {...}; // 如果未定义，则找MUI.callSvrExt['default']
+callSvr('zhanda:token/get-token', ...);</code></pre>
 <p>要模拟该接口，可设置</p>
-<pre><code>MUI.mockData["token/get-token"] = ...;</code></pre><hr>
+<pre><code>MUI.mockData['zhanda:token/get-token'] = ...;</code></pre>
+<p class="see"><strong>@see <a href="#callSvrExt">callSvrExt</a></strong> </p><hr>
 <h2 id="$.ajax">@key $.ajax</h2>
 <p class="key"><strong>@key <a id="ajaxOpt.jdFilter">ajaxOpt.jdFilter</a></strong>  禁用返回格式合规检查.</p>
 <p>以下调用, 如果1.json符合<code>[code, data]</code>格式, 则只返回处理data部分; 否则将报协议格式错误:</p>
@@ -1841,10 +1865,6 @@ var url = MUI.makeUrl("Ordr.set", params);</code></pre>
 这样可通过url.action得到原始的参数。</p>
 <p>支持callSvr扩展，如：</p>
 <pre><code>var url = MUI.makeUrl('zhanda:login');</code></pre>
-<p>(deprecated) 为兼容旧代码，action可以是一个数组，在WUI环境下表示对象调用:</p>
-<pre><code>WUI.makeUrl(['Ordr', 'query']) 等价于 WUI.makeUrl('Ordr.query');</code></pre>
-<p>在MUI环境下表示callSvr扩展调用:</p>
-<pre><code>MUI.makeUrl(['login', 'zhanda']) 等价于 MUI.makeUrl('zhanda:login');</code></pre>
 <p>特别地, 如果action是相对路径, 或是'.php'文件, 则不会自动拼接WUI.options.serverUrl:</p>
 <pre><code>callSvr("./1.json"); // 如果是callSvr("1.json") 则url可能是 "../api.php/1.json"这样.
 callSvr("./1.php");</code></pre>
@@ -1855,6 +1875,7 @@ callSvr("./1.php");</code></pre>
 <p style="margin-left:0em"><a href="#callSvr-4 适配RESTful API">4 适配RESTful API</a></p>
 <p style="margin-left:0em"><a href="#callSvr-5 ES6支持：jQuery的$.Deferred兼容Promise接口 / 使用await">5 ES6支持：jQuery的$.Deferred兼容Promise接口 / 使用await</a></p>
 <p style="margin-left:0em"><a href="#callSvr-6 直接取json类文件">6 直接取json类文件</a></p>
+<p style="margin-left:0em"><a href="#callSvr-7 获取HTTP返回状态码和响应头">7 获取HTTP返回状态码和响应头</a></p>
 </div>
 <p class="param"><strong>@param ac</strong>  String. action, 交互接口名. 也可以是URL(比如由makeUrl生成)</p>
 <p class="param"><strong>@param params</strong>  Object. URL参数（或称HTTP GET参数）</p>
@@ -1971,10 +1992,13 @@ callSvr("User.get", function (data) {
 }</code></pre>
 <p>callSvr扩展示例：</p>
 <pre><code>MUI.callSvrExt['zhanda'] = {
-    makeUrl: function(ac, param) {
+    // opt.ext='zhanda'即当前扩展名
+    // 如果不返回url，则走默认逻辑，此时若对方后端也是jdcloud框架，还可设置opt.serverUrl修改接口基础地址
+    makeUrl: function(ac, param, opt) {
         // 只需要返回接口url即可，不必拼接param
         return 'http://hostname/lcapi/' + ac;
     },
+    // this为ajax选项
     dataFilter: function (data) {
         if ($.isPlainObject(data) &amp;&amp; data.code !== undefined) {
             if (data.code == 0)
@@ -1992,8 +2016,8 @@ callSvr("User.get", function (data) {
 <pre><code>callSvr('zhanda:token/get-token', {user: 'test', password: 'test123'}, function (data) {
     console.log(data);
 });</code></pre>
-<p>旧的调用方式ac参数使用数组，现在已不建议使用：</p>
-<pre><code>callSvr(['token/get-token', 'zhanda'], ...);</code></pre>
+<p>旧的调用方式ac参数可使用数组，现已废弃：</p>
+<pre><code>callSvr(['token/get-token', 'zhanda'], ...); // 出错!</code></pre>
 <p class="key"><strong>@key <a id="callSvrExt[].makeUrl">callSvrExt[].makeUrl</a></strong> (ac, param)</p>
 <p>根据调用名ac生成url, 注意无需将param放到url中。</p>
 <p>注意：<br />
@@ -2012,8 +2036,15 @@ callSvr("User.get", function (data) {
 <p>(支持版本: v3.1)<br />
 如果要修改callSvr缺省调用方法，可以改写 MUI.callSvrExt['default']。示例：</p>
 <pre><code>MUI.callSvrExt['default'] = {
-    makeUrl: function(ac) {
-        return '../api.php/' + ac;
+    // 只需返回基本url，不用拼接params;
+    // (v7) 如果不返回url，则走默认逻辑，此时若对方后端也是jdcloud框架，还可设置opt.serverUrl修改接口基础地址
+    // opt.ext是扩展名，比如未定义callSvrExt['shagang']但定义了callSvrExt['default']，当调用callSvr('shagang:Data.qurey')时，opt.ext可取到'shagang'
+    makeUrl: function(ac, params, opt) {
+        return '/app1/api/' + ac;
+        // 示例2:
+        // if (opt.ext) {
+        //   opt.serverUrl = '/@' + opt.ext + '/firefly-web/server/api';
+        // }
     },
     dataFilter: function (data) {
         var ctx = this.ctx_ || {};
@@ -2198,6 +2229,18 @@ callSvr("../1.php");</code></pre>
 $.getJSON("../1.php", callback);</code></pre>
 <p>注意下面调用未指定dataType, 不会按筋斗云协议格式处理:</p>
 <pre><code>$.ajax("../1.php", {success: callback})</code></pre>
+<h4 id="callSvr-7 获取HTTP返回状态码和响应头">7 获取HTTP返回状态码和响应头</h4>
+<p>在回调中获取this.xhr_对象(即$.ajax()返回对象, 详细可参考$.ajax手册), 通过它的getResponseHeader()方法取响应头, status属性来获取状态码, 示例</p>
+<pre><code>callSvr("User.query", function (data) {
+    console.log("status", this.xhr_.status);
+    var v = this.xhr_.getResponseHeader("X-Powered-By"); // header名字不分区大小写,用"x-powered-by"也可以
+    console.log(v);
+});</code></pre>
+<p>当然也可以通过返回的dfd对象来操作:</p>
+<pre><code>rv = callSvr("User.query");
+rv.then(function (data) {
+    console.log("status", this.xhr_.status);
+});</code></pre>
 <p class="see"><strong>@see <a href="#$.ajax">$.ajax</a></strong> </p><hr>
 <h2 id="callSvrSync">@fn callSvrSync(ac, [params?], fn?, postParams?, userOptions?)</h2>
 <p class="return"><strong>@return data</strong>  原型规定的返回数据</p>
@@ -2283,6 +2326,14 @@ callSvr("User.get", {res: "id,phone"}, api_UserGet);</code></pre>
 <p>如果MUI.disableBatch=true, 该函数不起作用。</p>
 <p class="see"><strong>@see <a href="#batchCall">batchCall</a></strong> </p>
 <p class="see"><strong>@see <a href="#disableBatch">disableBatch</a></strong> </p><hr>
+<h2 id="syslog">@fn syslog(module, pri, content)</h2>
+<p>向后端发送日志。后台必须已添加syslog插件。<br />
+日志可在后台Syslog表中查看，客户端信息可查看ApiLog表。</p>
+<p class="param"><strong>@param module</strong>  app,fw(framework),page</p>
+<p class="param"><strong>@param pri</strong>  ERR,INF,WARN</p>
+<p>示例：</p>
+<pre><code>MUI.syslog("app", "ERR", "fail to pay: " + err.msg);</code></pre>
+<p>注意：如果操作失败，本函数不报错。</p><hr>
 <h2 id="activePage">@var activePage</h2>
 <p>当前页面。</p>
 <p>注意：</p>
@@ -2569,7 +2620,6 @@ g_args.dscr="上门洗车"; // 对字符串会自动进行URL解码。</code></p
 <li>g_args._debug: 在测试模式下，指定后台的调试等级，有效值为1-9. 参考：后端测试模式 P_TEST_MODE，调试等级 P_DEBUG.</li>
 <li>g_args.cordova: 用于在手机APP应用中加载H5应用，参考“原生应用支持”。示例：<a href="http://server/jdcloud/m2/index.html?cordova=1">http://server/jdcloud/m2/index.html?cordova=1</a></li>
 <li>g_args.wxCode: 用于在微信小程序中加载H5应用，并自动登录。参考：options.enableWxLogin 微信认证登录</li>
-<li>g_args.enableSwitchApp: 允许多应用自动切换功能。参考：options.enableSwitchApp</li>
 <li>g_args.logout: 退出登录后再进入应用。示例：<a href="http://server/jdcloud/m2/index.html?logout">http://server/jdcloud/m2/index.html?logout</a></li>
 </ul>
 <p class="see"><strong>@see <a href="#parseQuery">parseQuery</a></strong>  URL参数通过该函数获取。</p><hr>
@@ -2703,14 +2753,13 @@ function onAutoLogin()
     enableWxLogin: true
 });</code></pre>
 <p class="var"><strong>@var <a id="options.enableSwitchApp">options.enableSwitchApp</a></strong>  自动保存和切换应用</p>
-<p class="key"><strong>@key <a id="g_args.enableSwitchApp">g_args.enableSwitchApp</a></strong>  =1 应用自动切换</p>
 <p>同一个目录下的多个应用，支持自动切换。<br />
 例如原生APP（或微信小程序中）的URL为用户端，但在登录页或个人中心页可切换到员工端。<br />
 当进入员工端并登录成功后，希望下次打开APP后直接进入员工端，做法如下：</p>
 <p>在H5应用中设置选项options.enableSwitchApp=true。(例如在app.js中设置，这样所有应用都允许跳转）<br />
-应用登录后将自动记录当前URL。</p>
-<p>在APP中初次打开H5应用(history.length&lt;=1)时，会在进入应用后自动检查和切换应用（将在MUI.validateEntry函数中检查，一般H5应用的主JS文件入口处默认会调用它）。<br />
-最好在URL中添加参数enableSwitchApp=1强制检查，例如在chrome中初次打开页面history.length为2，不加参数就无法自动切换H5应用。</p>
+应用登录后将自动记录当前URL到localStorage.appPage. (可通过设置STORAGE_PREFIX实现不同应用系列的隔离)</p>
+<p>在APP中初次打开H5应用(或在浏览器新tab页中打开)时，会在进入应用后自动检查和切换应用（将在MUI.validateEntry函数中检查，一般H5应用的主JS文件入口处默认会调用它）。<br />
+通过sessionStorage.switchApp是否有值来判定是否初次打开页面.</p>
 <p class="var"><strong>@var <a id="options.onShowPage">options.onShowPage</a></strong> (pageRef, opt) 显示页面前回调</p>
 <p>(v5.4) 在调用MUI.showPage时触发调用，参数与MUI.showPage相同，用于显示任何页面前通用的操作。<br />
 此回调在页面加载或显示之前（先于目的页面的pagecreate/pagebeforeshow等事件）。<br />
@@ -2940,14 +2989,11 @@ g_args.lang中保存着实际使用的语言。</p>
 &lt;a href="javascript:logout()" class="logout"&gt;&lt;span class="lang"&gt;&lt;i class="icon-exit"&gt;&lt;/i&gt;退出系统&lt;/span&gt;&lt;/a&gt;</code></pre>
 <p>或在代码中，使用WUI.enhanceLang(jo)来为DOM组件支持翻译，或直接用T(str)翻译字符串。<br />
 注意lang类或enhanceLang函数不能设置组件下子组件的文字，可先取到文字组件再设置如<code>WUI.enhanceLang(jo.find(".title"))</code>。</p>
-<p class="fn"><strong>@fn <a id="T">T</a></strong> (s) 字符串翻译</p>
+<p class="fn"><strong>@fn <a id="T">T</a></strong> (s, defVal?) 字符串翻译</p>
 <p>T函数用于将开发语言翻译为当前使用的语言。</p>
 <p class="key"><strong>@key <a id=".lang">.lang</a></strong>  DOM组件支持翻译</p>
 <p class="fn"><strong>@fn <a id="enhanceLang">enhanceLang</a></strong> (jo) DOM组件支持翻译</p><hr>
 <h2 id="initClient">@fn initClient(param?)</h2><hr>
-<h2 id="Plugins">@class Plugins</h2><hr>
-<h2 id="Plugins.exists">@fn Plugins.exists(pluginName)</h2><hr>
-<h2 id="Plugins.list">@fn Plugins.list()</h2><hr>
 <h2 id="filterCordovaModule">@fn filterCordovaModule(module)</h2>
 <p>原生插件与WEB接口版本匹配。<br />
 在cordova_plugins.js中使用，用于根据APP版本与当前应用标识，过滤当前Web可用的插件。</p>
@@ -2983,14 +3029,6 @@ var order = MUI.formatField(obj); // obj会被修改，最终与order相同
     &lt;a href="javascript:hd_back();" class="btn-icon"&gt;&lt;i class="icon icon-back"&gt;&lt;/i&gt;&lt;/a&gt;
     &lt;h2&gt;个人信息&lt;/h2&gt;
 &lt;/div&gt;</code></pre><hr>
-<h2 id="syslog">@fn syslog(module, pri, content)</h2>
-<p>向后端发送日志。后台必须已添加syslog插件。<br />
-日志可在后台Syslog表中查看，客户端信息可查看ApiLog表。</p>
-<p class="param"><strong>@param module</strong>  app,fw(framework),page</p>
-<p class="param"><strong>@param pri</strong>  ERR,INF,WARN</p>
-<p>示例：</p>
-<pre><code>MUI.syslog("app", "ERR", "fail to pay: " + err.msg);</code></pre>
-<p>注意：如果操作失败，本函数不报错。</p><hr>
 <h2 id="initPullList">@fn initPullList(container, opt)</h2>
 <p>为列表添加下拉刷新和上拉加载功能。</p>
 <p>例：页面元素如下：</p>
