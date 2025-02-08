@@ -142,7 +142,7 @@ var ajaxOpt = {
 	//dataType: "text",
 	dataFilter: function (data, type) {
 		if (this.jdFilter) {
-			rv = defDataProc.call(this, data);
+			var rv = defDataProc.call(this, data);
 			if (rv !== RV_ABORT)
 				return rv;
 			-- $.active; // ajax调用中断,这里应做些清理
@@ -378,7 +378,7 @@ function defDataProc(rv)
 			return RV_ABORT;
 		}
 		else if (rv[0] == E_AUTHFAIL) {
-			var errmsg = rv[1] || "验证失败，请检查输入是否正确!";
+			var errmsg = T(rv[1]) || "验证失败，请检查输入是否正确!";
 			self.app_alert(errmsg, "e");
 			return RV_ABORT;
 		}
@@ -547,8 +547,6 @@ function makeUrl(action, params)
 		params._app = self.options.appName;
 	if (g_args._debug)
 		params._debug = g_args._debug;
-	if (g_args.phpdebug)
-		params.XDEBUG_SESSION_START = 1;
 
 	var p = $.param(params);
 	// 无参数时，也会设置xp=1，用于通知callSvr对post内容加密
@@ -1000,6 +998,23 @@ callSvr扩展示例：
 
 	$.ajax("../1.php", {success: callback})
 
+## 获取HTTP返回状态码和响应头
+
+在回调中获取this.xhr_对象(即$.ajax()返回对象, 详细可参考$.ajax手册), 通过它的getResponseHeader()方法取响应头, status属性来获取状态码, 示例
+
+	callSvr("User.query", function (data) {
+		console.log("status", this.xhr_.status);
+		var v = this.xhr_.getResponseHeader("X-Powered-By"); // header名字不分区大小写,用"x-powered-by"也可以
+		console.log(v);
+	});
+
+当然也可以通过返回的dfd对象来操作:
+
+	rv = callSvr("User.query");
+	rv.then(function (data) {
+		console.log("status", this.xhr_.status);
+	});
+
 @see $.ajax
 */
 self.callSvr = callSvr;
@@ -1035,7 +1050,7 @@ function callSvr(ac, params, fn, postParams, userOptions)
 		ext = 'default';
 	}
 
-	var isSyncCall = (userOptions && userOptions.async == false);
+	var isSyncCall = (userOptions && userOptions.async == false) || self.useSyncCall.active;
 	if (m_curBatch && !isSyncCall)
 	{
 		return m_curBatch.addCall({ac: ac, get: params, post: postParams}, fn, userOptions);
@@ -1092,6 +1107,8 @@ function callSvr(ac, params, fn, postParams, userOptions)
 		opt.contentType = false;
 	}
 	$.extend(opt, userOptions);
+	if (isSyncCall)
+		opt.async = false;
 	if (ext && self.callSvrExt[ext].beforeSend) {
 		self.callSvrExt[ext].beforeSend(opt);
 	}
@@ -1450,6 +1467,18 @@ function useBatchCall(opt, tv)
 	var batch = new self.batchCall(opt);
 	setTimeout(function () {
 		batch.commit();
+	}, tv);
+}
+
+self.useSyncCall = useSyncCall;
+function useSyncCall(tv)
+{
+	if (useSyncCall.active)
+		return;
+	tv = tv || 0;
+	useSyncCall.active = true;
+	setTimeout(function () {
+		useSyncCall.active = false;
 	}, tv);
 }
 

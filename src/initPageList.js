@@ -973,6 +973,7 @@ function initPageList(jpage, opt)
 			var diff = mCommon.getTimeDiffDscr(tm, new Date());
 			var str = "<p>下拉可以刷新</p>";
 			var str1 = "<p>上次刷新：" + diff + "</p>";
+			var msg;
 			if (uptoThreshold) {
 				str = "<p>松开立即刷新</p>";
 				msg = "<div>" + str + str1 + "</div>";

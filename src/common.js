@@ -85,7 +85,7 @@ function parseQuery(s)
 	if (s != "")
 	{
 		var a = s.split('&')
-		for (i=0; i<a.length; ++i) {
+		for (var i=0; i<a.length; ++i) {
 			var a1 = a[i].split("=");
 			var val = a1[1];
 			if (val === undefined)
@@ -1465,7 +1465,7 @@ function text2html(s, pics)
 		ret = s.replace(/^(?:([#-]+)\s+)?(.*)$/mg, function (m, begin, text) {
 			if (begin) {
 				if (begin[0] == '#') {
-					n = begin.length;
+					var n = begin.length;
 					return "<h" + n + ">" + text + "</h" + n + ">";
 				}
 				if (begin[0] == '-') {
@@ -1665,7 +1665,7 @@ jdserver同时支持http和websocket，建议设置为：（注意顺序）
 	
 */
 function jdPush(app, handleMsg, opt) {
-	opt = Object.assign({
+	opt = $.extend({
 		user: window.g_data && g_data.userInfo && g_data.userInfo.id || ("jduser-" + Math.round(Math.random()*10000)),
 		url: "/jdserver",
 		dataType: "json",
@@ -1734,6 +1734,9 @@ function jdPush(app, handleMsg, opt) {
 			// console.warn('websocket error', ev);
 		};
 		ws.onclose = function (ev) {
+			if (tmrAlive)
+				clearTimeout(tmrAlive);
+			tmrAlive = null;
 			// doClose: 通过proxy.close()关闭后，无须重连
 			// 1000: 正常关闭; 但连jdserver时ws.close()返回1005
 			if (!doClose && ev.code != 1000 && ev.code != 1005) {
@@ -1741,8 +1744,6 @@ function jdPush(app, handleMsg, opt) {
 				reconnect();
 				return;
 			}
-			if (tmrAlive)
-				clearTimeout(tmrAlive);
 			console.log('websocket close');
 		};
 		ws.onmessage = function (ev) {

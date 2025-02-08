@@ -854,7 +854,9 @@ function showPage(pageRef, opt)
 		m_isback = null;
 		self.activePage = jpage;
 		fixPageSize();
-		var title = jpage.find(".hd h1, .hd h2").filter(":first").text() || self.title || jpage.attr("id");
+		var jpageTitle = jpage.find(".hd h1, .hd h2");
+		self.enhanceLang(jpageTitle);
+		var title = jpageTitle.filter(":first").text() || self.title || jpage.attr("id");
 		setDocTitle(title);
 
 		if (!enableAni) {
@@ -899,7 +901,6 @@ function setDocTitle(newTitle)
 {
 	document.title = newTitle;
 	if(mCommon.isIOS() && mCommon.isWeixin()) {
-		document.title = newTitle;
 		var $iframe = $('<iframe src="/favicon.ico"></iframe>');
 		$iframe.one('load',function() {
 			setTimeout(function() {
@@ -1093,7 +1094,7 @@ function enhanceNavbar(jo)
 		ja = ja.filter(":first");
 	}
 
-	var jpage_ = null;
+	var jpage = null;
 	jo.find(">*").on('click', function () {
 		activateElem($(this));
 	})
@@ -1101,7 +1102,7 @@ function enhanceNavbar(jo)
 	.each (function () {
 		var ref = $(this).attr("mui-linkto");
 		if (ref) {
-			if (jpage_ == null)
+			if (jpage == null)
 				jpage = jo.closest(".mui-page");
 			var active = $(this).hasClass("active");
 			var jlink = jpage.find(ref);
@@ -1331,8 +1332,8 @@ function app_alert(msg)
 '		<input type="text" id="txtInput" style="border:1px solid #bbb; height:30px; text-align: center">' +
 '	</div>' + 
 '	<div class="ft">' +
-'		<a href="javascript:;" id="btnCancel" class="mui-btn">取消</a>' +
-'		<a href="javascript:;" id="btnOK" class="mui-btn primary">确定</a>' +
+'		<a href="javascript:;" id="btnCancel" class="mui-btn lang">取消</a>' +
+'		<a href="javascript:;" id="btnOK" class="mui-btn primary lang">确定</a>' +
 '	</div>' +
 '</div>'
 		jdlg = $(html);
@@ -1367,7 +1368,7 @@ function app_alert(msg)
 		});
 	}
 
-	jdlg.find(".p-title").html(s);
+	jdlg.find(".p-title").html(T(s));
 	jdlg.find(".p-msg").html(msg);
 	self.showDialog(jdlg);
 
